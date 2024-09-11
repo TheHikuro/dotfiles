@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "husky": "^9.1.5"
+  },
+  "dependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "cz-conventional-changelog": "^3.3.0"
+  },
+  "scripts": {
+    "prepare": "husky"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
