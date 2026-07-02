@@ -906,6 +906,7 @@ alias lt = eza --tree --level=2 --long --icons --git
 alias lts = eza --tree --level=2 --icons --git
 alias v = nvim
 alias vfind = v (fzf --preview="bat --color=always {}")
+alias b = bat  
 
 # Git
 alias gbr = gbr_safe
