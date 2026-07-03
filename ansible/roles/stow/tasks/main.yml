@@ -37,11 +37,16 @@
   args:
     executable: /bin/sh
 
+- name: Ensure ~/.claude directory exists
+  file:
+    path: "{{ home }}/.claude"
+    state: directory
+
 - name: Run stow to symlink dotfiles/.claude → ~/.claude
   command: >
     stow
     --dir={{ dotfiles_path }}
-    --target={{ home }}
+    --target={{ home }}/.claude
     --restow
     --adopt
     .claude
