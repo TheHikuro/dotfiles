@@ -11,6 +11,5 @@
     - { role: fonts, tags: ["fonts"] }
     - { role: ghostty, tags: ["ghostty"] }
     - { role: nushell, tags: ["nushell"] }
-    - { role: tmux, tags: ["tmux"] }
     - { role: secrets, tags: ["secrets"] }
     - { role: stow, tags: ["stow"] }
