@@ -9,6 +9,7 @@ bun = "latest"
 pnpm = "latest"
 node = "latest"
 "github:can1357/oh-my-pi" = "latest"
+go = "latest"
 
 [settings]
 auto_install = true
