@@ -13,6 +13,8 @@ Personal macOS setup, fully managed and deployed via Ansible + GNU Stow. Not int
 | [Starship](https://starship.rs/)                    | Prompt                                              |
 | [Ghostty](https://ghostty.org/)                     | Terminal emulator                                   |
 | [Zellij](https://zellij.dev/)                       | Terminal multiplexer                                |
+| [Oh My Pi (omp)](https://github.com/can1357/oh-my-pi)  | AI coding agent CLI                                 |
+| [Terax](https://terax.app/)                          | AI-native terminal (secondary)                      |
 | [Neovim](https://neovim.io/)                        | Editor (LazyVim-based)                              |
 | [Carapace](https://github.com/rsteube/carapace-bin) | Multi-shell completion                              |
 | [Zoxide](https://github.com/ajeetdsouza/zoxide)     | Smart directory navigation                          |
@@ -153,11 +155,24 @@ dotfiles/.config/tmux/     →  ~/.config/tmux
 dotfiles/.config/zellij/   →  ~/.config/zellij
 ```
 
+A few packages live under `dotfiles/.config/` for organization but are stowed to their **real** (non-XDG) config location instead of `~/.config/`, so they're excluded from the mapping above via `stow --ignore`:
+
+```
+dotfiles/.config/omp/agent/config.yml     →  ~/.omp/agent/config.yml
+dotfiles/.config/terax/terax-settings.json → ~/Library/Application Support/app.crynta.terax/terax-settings.json
+dotfiles/.claude/                          →  ~/.claude/
+```
+
+Only the tracked files/dirs get symlinked — untracked runtime state next to them (`~/.omp/agent/agent.db`, `~/.omp/agent/sessions/`, Terax's `terax-spaces.json`/`terax-ai-sessions.json`, etc.) is left as real files on disk, never pulled into git.
+
 Stow is run automatically at the end of the Ansible playbook (`stow` role). To re-apply manually:
 
 ```bash
 cd ~/dotfiles
-stow --dir=. --target=~/.config --restow .config
+stow --dir=. --target=~/.config --restow --ignore='^(omp|terax)$' .config
+stow --dir=. --target=~/.claude --restow .claude
+stow --dir=.config --target=~/.omp omp
+stow --dir=.config --target="$HOME/Library/Application Support/app.crynta.terax" terax
 ```
 
 > Ghostty is the exception — its config lives in `~/Library/Application Support/com.mitchellh.ghostty/config` and is handled separately by the `ghostty` Ansible role.
@@ -184,7 +199,7 @@ ansible/
     ├── nushell/           # Shell install + init files (env.nu / config.nu)
     ├── ghostty/           # Terminal config symlink → Library/Application Support
     ├── fonts/             # Nerd Fonts directory check
-    └── stow/              # GNU Stow — creates all ~/.config symlinks
+    └── stow/              # GNU Stow — ~/.config, ~/.claude, ~/.omp/agent, Terax symlinks
 ```
 
 ### Running the playbook manually
@@ -259,6 +274,15 @@ NuShell on macOS loads its entry points from `~/Library/Application Support/nush
 - Config: `~/Library/Application Support/com.mitchellh.ghostty/config`
 
 The config is a **symlink** managed by the `ghostty` Ansible role — no manual `ln -s` needed.
+
+---
+
+## 🤖 Oh My Pi (omp) + Terax
+
+- **omp** — AI coding agent CLI. Config: `~/.omp/agent/config.yml` (symlinked from `dotfiles/.config/omp/agent/config.yml`; `agent.db`, `sessions/`, `.env`, and other runtime state stay real, untracked files next to it).
+  - Default model role: `anthropic/claude-sonnet-5:high` (`modelRoles.default` in `config.yml`).
+  - `ANTHROPIC_API_KEY` is sourced from the Keychain by `secrets.nu` at shell startup (see [Secrets & Environment Variables](#-secrets--environment-variables)) — no manual `/login` or plaintext key on disk.
+- **Terax** — secondary AI-native terminal. Config: `~/Library/Application Support/app.crynta.terax/terax-settings.json` (symlinked from `dotfiles/.config/terax/terax-settings.json`; spaces/sessions/snippets state stays untracked).
 
 ---
 

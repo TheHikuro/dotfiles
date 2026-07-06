@@ -1,0 +1,18 @@
+{
+  "autocompleteModelId": "claude-sonnet-4-6",
+  "terminalShell": "/opt/homebrew/bin/nu",
+  "themeId": "catppuccin",
+  "backgroundOpacity": 0.45,
+  "autocompleteEnabled": true,
+  "vimMode": true,
+  "defaultModelId": "claude-sonnet-4-6",
+  "recentModelIds": [
+    "claude-sonnet-4-6",
+    "gpt-5.4-mini"
+  ],
+  "backgroundImageId": "b239f718-93d9-487f-ac98-c703037bc950",
+  "backgroundBlur": 7,
+  "showHidden": true,
+  "backgroundKind": "image",
+  "autocompleteProvider": "anthropic"
+}

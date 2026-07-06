@@ -16,13 +16,14 @@
     - zed
     - jiratui
 
-- name: Run stow to symlink dotfiles/.config → ~/.config
+- name: Run stow to symlink dotfiles/.config → ~/.config (omp, terax excluded — stowed to their native locations below)
   command: >
     stow
     --dir={{ dotfiles_path }}
     --target={{ home }}/.config
     --restow
     --adopt
+    --ignore=^(omp|terax)$
     .config
   args:
     chdir: "{{ dotfiles_path }}"
@@ -54,3 +55,39 @@
     chdir: "{{ dotfiles_path }}"
   register: stow_claude_result
   changed_when: stow_claude_result.rc == 0
+
+- name: Ensure ~/.omp directory exists
+  file:
+    path: "{{ home }}/.omp"
+    state: directory
+
+- name: Run stow to symlink dotfiles/.config/omp → ~/.omp (native omp config root)
+  command: >
+    stow
+    --dir={{ dotfiles_path }}/.config
+    --target={{ home }}/.omp
+    --restow
+    --adopt
+    omp
+  args:
+    chdir: "{{ dotfiles_path }}/.config"
+  register: stow_omp_result
+  changed_when: stow_omp_result.rc == 0
+
+- name: Ensure Terax config directory exists
+  file:
+    path: "{{ home }}/Library/Application Support/app.crynta.terax"
+    state: directory
+
+- name: Run stow to symlink dotfiles/.config/terax → ~/Library/Application Support/app.crynta.terax
+  command: >
+    stow
+    --dir={{ dotfiles_path }}/.config
+    --target={{ home }}/Library/Application\ Support/app.crynta.terax
+    --restow
+    --adopt
+    terax
+  args:
+    chdir: "{{ dotfiles_path }}/.config"
+  register: stow_terax_result
+  changed_when: stow_terax_result.rc == 0
