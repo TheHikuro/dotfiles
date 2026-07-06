@@ -40,6 +40,7 @@ command_exists() { command -v "$1" &>/dev/null; }
 # Add new secrets here — they will be prompted before installation begins
 REQUIRED_SECRETS=(
   "JIRA_API_TOKEN:Jira Token Api"
+  "ANTHROPIC_API_KEY:Claude api key"
   # "GITHUB_TOKEN:GitHub Personal Access Token"  ← add more secrets here
 )
 

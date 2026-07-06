@@ -60,7 +60,9 @@ $env.GPG_TTY = (tty)
 # ─── MISE activation ──────────────────────────────────────────────────────────
 let mise_path = ($nu.default-config-dir | path join mise.nu)
 if not ($mise_path | path exists) {
-  ^mise activate nu | save $mise_path --force
+  # `mise activate nu` still emits the deprecated `str upcase`; patch it on generation
+  # so we don't get a parser warning on every prompt until upstream fixes it.
+  ^mise activate nu | str replace 'str upcase' 'str uppercase' | save $mise_path --force
 }
 
 # ─── Init tools ───────────────────────────────────────────────────────────────

@@ -22,6 +22,12 @@ if ($jira_token | is-not-empty) {
   $env.JIRA_API_TOKEN = $jira_token
 }
 
+# ─── Anthropic (omp) ────────────────────────────────────────────────────────
+let anthropic_api_key = (keychain-get "ANTHROPIC_API_KEY")
+if ($anthropic_api_key | is-not-empty) {
+  $env.ANTHROPIC_API_KEY = $anthropic_api_key
+}
+
 # ─── Ajouter d'autres secrets ici ─────────────────────────────────────────
 # Exemple :
 # let gh_token = (keychain-get "GITHUB_TOKEN")

@@ -8,6 +8,7 @@
 bun = "latest"
 pnpm = "latest"
 node = "latest"
+"github:can1357/oh-my-pi" = "latest"
 
 [settings]
 auto_install = true
@@ -15,6 +16,11 @@ experimental = true
 
 # Variables d'env gérées par mise (remplace les exports manuels)
 [env]
+
+# Ce fichier est le config global de mise (~/.config/mise/config.toml), donc son
+# cwd par défaut est $HOME et non ce repo : on force le dir des tasks ici.
+[task_config]
+dir = "~/dotfiles"
 
 [tasks.mise_setup]
 description = "Installe tous les outils définis dans [tools]"
