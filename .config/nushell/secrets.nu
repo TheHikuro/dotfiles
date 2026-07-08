@@ -28,6 +28,12 @@ if ($anthropic_api_key | is-not-empty) {
   $env.ANTHROPIC_API_KEY = $anthropic_api_key
 }
 
+# ─── SOPS (casadana) ────────────────────────────────────────────────────────
+let sops_age_key = (keychain-get "SOPS_AGE_KEY")
+if ($sops_age_key | is-not-empty) {
+  $env.SOPS_AGE_KEY = $sops_age_key
+}
+
 # ─── Ajouter d'autres secrets ici ─────────────────────────────────────────
 # Exemple :
 # let gh_token = (keychain-get "GITHUB_TOKEN")
