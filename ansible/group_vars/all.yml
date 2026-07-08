@@ -22,6 +22,8 @@ homebrew_packages:
   - neovim
   - watchman
   - btop
+  - sops
+  - age
 
 homebrew_casks:
   - ghostty

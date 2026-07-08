@@ -62,3 +62,16 @@ run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags nvim"
 [tasks.ansible-nushell]
 description = "Déploie uniquement la config NuShell"
 run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags nushell"
+
+[tasks.ansible-stow]
+description = "Déploie uniquement les symlinks Stow"
+run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags stow"
+
+[tasks.stow]
+description = "Réapplique les symlinks Stow manuellement (sans Ansible)"
+run = """
+stow --dir=. --target=~/.config --restow --ignore='^(omp|terax)$' .config
+stow --dir=. --target=~/.claude --restow .claude
+stow --dir=.config --target=~/.omp omp
+stow --dir=.config --target="$HOME/Library/Application Support/app.crynta.terax" terax
+"""
