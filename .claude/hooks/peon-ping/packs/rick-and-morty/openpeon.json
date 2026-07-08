@@ -1,0 +1,581 @@
+{
+  "cesp_version": "1.0",
+  "name": "rick-and-morty",
+  "display_name": "Rick and Morty (NSFW)",
+  "version": "1.0.0",
+  "description": "Rick and Morty voice lines. Contains mature language.",
+  "author": {
+    "name": "Mr3zee"
+  },
+  "license": "CC-BY-NC-4.0",
+  "language": "en",
+  "categories": {
+    "session.start": {
+      "sounds": [
+        {
+          "file": "sounds/greetings.mp3",
+          "label": "Greetings!",
+          "sha256": "68f72afc20c88435f2d350237583bd14d94a9660c7ce134d0145dd13a131c5f3"
+        },
+        {
+          "file": "sounds/hey_morty.mp3",
+          "label": "Hey Morty!",
+          "sha256": "2ee49b58f94d9b123097174c05f073f1e7b98bb298a9398333e4c1e6a76b6243"
+        },
+        {
+          "file": "sounds/rick_and_morty_time.mp3",
+          "label": "Rick and Morty time!",
+          "sha256": "d69e3676c41de99c164b4f522494191715c94551b5556c8ce2e3ba215de9225e"
+        },
+        {
+          "file": "sounds/woo_vu_luvub_dub_dub.mp3",
+          "label": "Wubba lubba dub dub!",
+          "sha256": "796b897f15a43a29ea5ad30ceafc536ecf29e5feb240a2d37e9705594052d438"
+        },
+        {
+          "file": "sounds/pickle_rick.mp3",
+          "label": "I'm Pickle Rick!",
+          "sha256": "1f268ee2161d916eba7f133ed60650187cb5ba9ddd2d370cef2bd0f0c41b5fc3"
+        },
+        {
+          "file": "sounds/20_minutes_adventure.mp3",
+          "label": "Let's go! In and out, 20 minutes adventure!",
+          "sha256": "815c76d4e70e812f7f0f9e0e781dfec7d97f4a15a215827d0fdfd6c00194efd3"
+        },
+        {
+          "file": "sounds/we_need_to_go_on_a_quick_adventure.mp3",
+          "label": "We need to go on a quick adventure.",
+          "sha256": "074692a539f574a7fb908c12c1f72e7f56be686aa259ef4e62681df9384130d5"
+        },
+        {
+          "file": "sounds/temporary_superintelligence.mp3",
+          "label": "Temporary super intelligence.",
+          "sha256": "f8c2b8bfdf53eafc0ed16233aaaeae5dd3968fc39714156502600e22ca94d6df"
+        },
+        {
+          "file": "sounds/because_i_invent_transform_create_and_destroy_for_a_living.mp3",
+          "label": "Because I invent, transform, create, and destroy for a living.",
+          "sha256": "f7c1b7422ae0084043bb8c9f550b8a5bdf230a52f920b4361bc97b03755c01c1"
+        },
+        {
+          "file": "sounds/all_day_long_forever.mp3",
+          "label": "ALL DAY LONG FOREVER",
+          "sha256": "a15658b97b5a165a32fac462dd600ea4bb4b9b32ef82a0866002127cff6621d1"
+        },
+        {
+          "file": "sounds/im_doctor_who_in_this_motherfucker.mp3",
+          "label": "I'm Doctor Who in this motherfucker!",
+          "sha256": "bcfe163c8f52cbeba8f91581128d7c0f1f044f4933085277039090455a7fe77f"
+        },
+        {
+          "file": "sounds/screaming_sun.mp3",
+          "label": "[Screaming sun]",
+          "sha256": "3ecb9a17ff009326e7d619a7b7417e49ac6244b11b01961d9f7eebf4582f9fab"
+        },
+        {
+          "file": "sounds/youre_the_reason_this_species_is_a_failure.mp3",
+          "label": "You're the reason this species is a failure!",
+          "sha256": "416673bb4caae202419f101c4fa7c9145e68201b9a5ceb6d62c4e55b9b464756"
+        },
+        {
+          "file": "sounds/what_is_my_purpose.mp3",
+          "label": "What is my purpose?",
+          "sha256": "0dbbd8ab9afadd314b11e97627dac2ad6bf0f5adc24dc779ad5b1842ca5496bc"
+        },
+        {
+          "file": "sounds/with_no_disrespect_but_i_really_think_what_you_are_doing_here_is_unethical.mp3",
+          "label": "With no disrespect, I really think what you're doing here is unethical.",
+          "sha256": "200b384f5c53b0a54534ff4f618d9a255811e39cd3148332e9e5125f39fe875c"
+        },
+        {
+          "file": "sounds/youre_also_gonna_lose_a_significant_amount_of_brain_functionality.mp3",
+          "label": "You're also going to lose a significant amount of brain functionality.",
+          "sha256": "a6d2c2eb87528fb54c4e15885c983050574794a15e3cf90d5a5f55af700d6a3d"
+        },
+        {
+          "file": "sounds/its_not_a_place_for_smart_people.mp3",
+          "label": "It's not a place for smart people, Jerry.",
+          "sha256": "dfd9b6ea1ac1e8ade78811991ca614509dc7ff9675146f088ff033bc6deb2f2c"
+        },
+        {
+          "file": "sounds/what_are_you_here_for_just_kidding_i_dont_care.mp3",
+          "label": "What are you here for? Just kidding, I don't care.",
+          "sha256": "be08d562d39513b2ee45fecf6eb3740350c4e53b316f7059f3cdd61714c677b7"
+        },
+        {
+          "file": "sounds/who_the_fuck_are_you.mp3",
+          "label": "Who the fuck are you?",
+          "sha256": "5379fb98f93f8d4a8ca29a7cf01fed342433327c1d1393c783f2ef1004479db2"
+        },
+        {
+          "file": "sounds/i_could_be_a_clone.mp3",
+          "label": "I could be a clone!",
+          "sha256": "c99f200c0ccb68ff742be3590b362eed0adcade998383ef6057328d579e2b04c"
+        }
+      ]
+    },
+    "task.acknowledge": {
+      "sounds": [
+        {
+          "file": "sounds/ooooh_my_god_here_we_go.mp3",
+          "label": "Oh my God. Here we go.",
+          "sha256": "d84c4ced43973091cff586684999319e09ff22c5743499a6def5cd8d2306c8cf"
+        },
+        {
+          "file": "sounds/now_is_the_time_for_action.mp3",
+          "label": "Now is the time for action.",
+          "sha256": "d22d96715934d62091cbc6670cba0f9968e9a367bcd8f18c4fd4d7f3a82003bd"
+        },
+        {
+          "file": "sounds/you_son_of_a_bitch_im_in.mp3",
+          "label": "You son of a bitch! I'm in!",
+          "sha256": "d81a2707f26e578b5e74d26a16c0521e3418ea847e88c8df9aa2b7fa8f1b8a7b"
+        },
+        {
+          "file": "sounds/yes_im_gonna_fucking_do_it.mp3",
+          "label": "Yes, I'm gonna fucking do it!",
+          "sha256": "8c860539464717f8c8f36c1f448f1f0dee7fff4da37a69807b9d8d52b38afc89"
+        },
+        {
+          "file": "sounds/im_gonna_accomplish_great_things.mp3",
+          "label": "I'm gonna accomplish great things.",
+          "sha256": "4d0f95887ea32b563e0db26e395fb2841de149b1a2801c76375d3b4a197d0d02"
+        },
+        {
+          "file": "sounds/i_can_do_anything.mp3",
+          "label": "I can do anything.",
+          "sha256": "0f1a8c9be8a4b8e2c031a96c67686448fecaa255148e32cae04fa1edaebd8d64"
+        },
+        {
+          "file": "sounds/ok_lets_eat_the_baby.mp3",
+          "label": "Okay, let's eat the baby.",
+          "sha256": "0b2a54c00f5ac8d2294dee11d1f2cf8b0ea21363c8cbd3cce2e3b61d8dc8d797"
+        },
+        {
+          "file": "sounds/thats_what_i_wanted_you_to_think.mp3",
+          "label": "That's what I wanted you to think.",
+          "sha256": "a999bdb98a4820525f651367ec49df7d9cc3871734d131dfb1df9f19b52f65de"
+        },
+        {
+          "file": "sounds/oh_thats_wow_morty_wow.mp3",
+          "label": "Oh, that's wow, Morty. Wow.",
+          "sha256": "7cc89be77a8bb481310913e83df4032dac5e46837a01d7d2315f35342968a2da"
+        },
+        {
+          "file": "sounds/9_11.mp3",
+          "label": "We're gonna take control of this plane. We're gonna 9-11 it.",
+          "sha256": "f0e3309422edb52c0025caf0b017956cd2ad1177634b61984d67cd73fabeba3e"
+        },
+        {
+          "file": "sounds/every_breath_i_take_without_your_permission.mp3",
+          "label": "Every breath I take without your permission raises my self-esteem.",
+          "sha256": "96e76c82daf0630d128398867875adb27f9f5e0cfeb3a71c2e0875252566115f"
+        },
+        {
+          "file": "sounds/i_mean_thats_what_i_call_slavery.mp3",
+          "label": "I mean, that's what I call slavery.",
+          "sha256": "6d41dba02223dd0a5c3f650114e9b11ada996ab78515e670564975ad8200728f"
+        },
+        {
+          "file": "sounds/that_just_sounds_like_slavery_with_extra_steps.mp3",
+          "label": "That just sounds like slavery with extra steps!",
+          "sha256": "ef1a5db1cbe22f4493b7f56511cec01bab257eccb70a20ea01954b234dfdd92e"
+        },
+        {
+          "file": "sounds/your_idea_is_not_worth_doing.mp3",
+          "label": "Your idea is not worth doing.",
+          "sha256": "56d3d1a86dc5f8389fad0d1b28b6119fb3a7a8913a70110a69d92d273c320aa4"
+        },
+        {
+          "file": "sounds/i_dont_like_being_told_where_to_go_or_what_to_do.mp3",
+          "label": "I don't like being told where to go and what to do.",
+          "sha256": "07e735f6590c6dcbd502af8be23771be811e554f67c4ea22c53fee2f3df74831"
+        },
+        {
+          "file": "sounds/i_can_answer_that_for_money.mp3",
+          "label": "I can answer that for money.",
+          "sha256": "6561e4cb620c1fe06c947c6ce41e182ab522ed52f514f49586241a785776a41b"
+        },
+        {
+          "file": "sounds/oh_my_god_is_this_what_you_think_i_do.mp3",
+          "label": "Oh my god, is this what you think I do?",
+          "sha256": "a859378aece2ecc21201ed4d998907cc832b7067bbff5184a54dcdb8dfe9453b"
+        },
+        {
+          "file": "sounds/well_thats_retarded.mp3",
+          "label": "Well, that's retarded.",
+          "sha256": "9a00ed2948c05fa8cd964b6d1facb56dd61d9163713c3e7b6a00f70e5b3adf9a"
+        },
+        {
+          "file": "sounds/wanting_a_dragon_isnt_an_idea.mp3",
+          "label": "Wanting a dragon isn't an idea.",
+          "sha256": "af91c67f393f292827a1d0ca6cac0f02f131c8bdb138e8ceb051ebde9015b8e1"
+        }
+      ]
+    },
+    "task.complete": {
+      "sounds": [
+        {
+          "file": "sounds/now_you_have_everything_you_want.mp3",
+          "label": "Now you have everything you want.",
+          "sha256": "6c00d9953cba3c2306fb8ddc35b2730769088c426cae1fb8bcd1d5f1d3f9d8ab"
+        },
+        {
+          "file": "sounds/i_programmed_you_to_believe_that.mp3",
+          "label": "I programmed you to believe that.",
+          "sha256": "bac4e63bd0883b684a7be3883d9ef1d7fa0d9c1908a8fd3b7d09077e252096cc"
+        },
+        {
+          "file": "sounds/you_think_thats_true_because_i_wanted_you_to_think_that.mp3",
+          "label": "You think that's true because I wanted you to think that.",
+          "sha256": "bc26c5ad40f9092e8996c724ba1739d8942a2f270618d6a77d54f22bc2294753"
+        },
+        {
+          "file": "sounds/you_know_what_i_can_do.mp3",
+          "label": "You don't know what I can do!",
+          "sha256": "47b90eb48abb8faddf20f00a2d090a7c303d1f86fc06e135072a783fd5df980c"
+        },
+        {
+          "file": "sounds/this_was_insane_that_was_pure_luck.mp3",
+          "label": "This was insane! That was pure luck!",
+          "sha256": "dfc799c612f886464364834ba9d7aa168c828e3bf4e55ac7387b8d691d31d656"
+        },
+        {
+          "file": "sounds/i_turned_myself_into_a_pickle.mp3",
+          "label": "I turned myself into a pickle.",
+          "sha256": "f2c27ed64799a4506950d00aefb0ad2d4cbf592d2e4dc9a3f5e47ff7c93ff6e2"
+        },
+        {
+          "file": "sounds/what_an_exciting_life_you_live.mp3",
+          "label": "What an exciting life you live.",
+          "sha256": "9a1ab7076d66570ffc83b9c7e2ef6feb4b7b00e96a78828fbc4ce1fc51d3787b"
+        },
+        {
+          "file": "sounds/i_didnt_know_hanging_out_with_you_was_making_me_smarter.mp3",
+          "label": "I didn't know hanging out with you was making me smarter!",
+          "sha256": "e650f3c704f7ffc8da033cc7d420c473c210a522e12cc48687ea2dd42696061b"
+        },
+        {
+          "file": "sounds/i_was_not_in_control_of_that_situation_at_all.mp3",
+          "label": "I was not in control of that situation at all!",
+          "sha256": "96f62b98824e2dc81174b3f7fd287f9a589f209863c2c24b9cc7fae794e9cf51"
+        },
+        {
+          "file": "sounds/oh_yeah.mp3",
+          "label": "Oh yeah!",
+          "sha256": "8e851e84e8ed58b64e80a836ed8902e52aa995cf4a14607adab5fecf8602bdd9"
+        },
+        {
+          "file": "sounds/doesnt_make_a_lot_of_sense_but_stand_by_it.mp3",
+          "label": "Doesn't make a lot of sense, but gotta stand by it.",
+          "sha256": "6bbc1f552d202760b97b6fb6c943a071d65aa950e91efcf7e1422d6413926c73"
+        },
+        {
+          "file": "sounds/god_dammit_they_are_right_here.mp3",
+          "label": "God damn it! They're right here!",
+          "sha256": "7d6f43d2370afb6332d5be11615e1970239bebfb411881aac0304e82f5a81c02"
+        },
+        {
+          "file": "sounds/im_sure_it_was_expensive.mp3",
+          "label": "I'm sure it was expensive.",
+          "sha256": "e661592b5bdce192ae3d101e682c4239512986198abee78a3f7101a55a26b8fd"
+        }
+      ]
+    },
+    "task.error": {
+      "sounds": [
+        {
+          "file": "sounds/oh_jeeze.mp3",
+          "label": "Oh, jeeze.",
+          "sha256": "c5a3019ec9ec800ad5c5bc74bf04e400e3cc31558455c5cd89f017acfda71cee"
+        },
+        {
+          "file": "sounds/jeez_oh.mp3",
+          "label": "Jesus!",
+          "sha256": "2aca851b1569c3aa0f6de6c0a60d7d0b562d844e59b90f7915f22c344dd8948f"
+        },
+        {
+          "file": "sounds/oh_man.mp3",
+          "label": "Oh man!",
+          "sha256": "ea98752f54d15567d6d775c59e0a873f4a4326feec7ee1f4fea6f7506953a4b8"
+        },
+        {
+          "file": "sounds/oh_ooh.mp3",
+          "label": "Oh... ooh!",
+          "sha256": "66b83c637457852e22600c957b0b60c690e1be736fc6a0ed093be893692dde44"
+        },
+        {
+          "file": "sounds/oh_fuck_fuck_me_fuck_me.mp3",
+          "label": "Oh fuck! Oh fuck me! Fuck me!",
+          "sha256": "71facfa518383ba1d05a1cfd280acffeccaf874ec475cbffa89f9846265abb2f"
+        }
+      ]
+    },
+    "input.required": {
+      "sounds": [
+        {
+          "file": "sounds/show_me_what_you_got.mp3",
+          "label": "Show me what you got!",
+          "sha256": "a35240de004750f9a90f73e6ca4d74c49e888bbe47ac7866b02167bb24220fd7"
+        },
+        {
+          "file": "sounds/i_want_to_see_what_you_got.mp3",
+          "label": "Show me what you got! I want to see what you got!",
+          "sha256": "9167a6345e1dd513612b1053819ac418ad1d0f15c39ac87a7b0cfe466db51025"
+        },
+        {
+          "file": "sounds/what.mp3",
+          "label": "WHAT",
+          "sha256": "0f8e5226f5e2666f79742403f6ee79881dc0ffd631be9a99a89595a4243a8c18"
+        },
+        {
+          "file": "sounds/rhetorical_question_morty.mp3",
+          "label": "Rhetorical question, Morty. The answer's yes, you just have to be a genius.",
+          "sha256": "98fb8a9ebceeaf7f5b755c00b5738b760b27da9aef5c30464bca1c8334788176"
+        },
+        {
+          "file": "sounds/im_not_looking_for_judgement_just_a_yes_or_no.mp3",
+          "label": "I'm not looking for judgment, just a yes or no.",
+          "sha256": "bf9737f6dccabc6af8602aae0697ccceee1bffb2fce8aabe05d8c12f47bf8c7e"
+        },
+        {
+          "file": "sounds/can_you_assimilate_a_giraffe.mp3",
+          "label": "Can you assimilate a giraffe?",
+          "sha256": "5282444b6c6bac77f8cbd3be92656d86d5e652449a75558e33459a7c84b95e11"
+        },
+        {
+          "file": "sounds/am_i_getting_a_selfie.mp3",
+          "label": "Am I getting a selfie?",
+          "sha256": "bb509b59b6043ba3ed45b3b457de82d47fbd0234e51956b22295d80dc9eafacf"
+        },
+        {
+          "file": "sounds/i_dont_wanna_be_a_little_help_guy_but_a_little_help.mp3",
+          "label": "I don't want to be the- a little help guy, but a little help-",
+          "sha256": "eef569c37980f4d1d1eefc913c8fd24dd15d9876ce5afdec5e5b03561754fe6c"
+        },
+        {
+          "file": "sounds/did_you_get_those_seeds_all_the_way_up_your_butt.mp3",
+          "label": "Did you get those seeds all the way up your butt?",
+          "sha256": "e55f31b861cca6431fdefb068618e6d8c407df1d2049c828f7e936f252a8d0dd"
+        },
+        {
+          "file": "sounds/and_now_another_quick_mystery.mp3",
+          "label": "And now, another quick mystery.",
+          "sha256": "bf614532fe4cfb4f255d92896c4b71fa8e953df1a297ee0701865d5a92b13430"
+        },
+        {
+          "file": "sounds/i_want_you.mp3",
+          "label": "I want you!",
+          "sha256": "d8179aa462196c77ea2fc14d0df9989d7d0d4ad06a8fb30e4401caf5f25c7c58"
+        },
+        {
+          "file": "sounds/that_was_my_plan_the_whole_time.mp3",
+          "label": "That was my plan the whole time!",
+          "sha256": "572a85c428d1059ef27d40458ea3193a15d210eca9dafbd45fb7e745b6e811d1"
+        },
+        {
+          "file": "sounds/help_me_im_gonna_die.mp3",
+          "label": "Help me, I'm gonna die!",
+          "sha256": "cc42fa165aef9d736ef75b31351a6ad3b3bf4182e4980f2c3f94c18f5c59f7d0"
+        },
+        {
+          "file": "sounds/you_see_what_we_just_stumbled_upon_morty.mp3",
+          "label": "You see what we just stumbled upon, Morty?",
+          "sha256": "b1d26393ba68430c377a40ff8c4c7b83151968b5d5c5c2b84206fe7000986939"
+        },
+        {
+          "file": "sounds/uncertainty_is_inherently_unsustainable.mp3",
+          "label": "Uncertainty is inherently unsustainable.",
+          "sha256": "c88ba033a2bdf164ca99aa2a84b2b57ea79c86cdb67226c451b9e64a966ce65c"
+        },
+        {
+          "file": "sounds/eventually_everything_is_either_is_or_isnt.mp3",
+          "label": "Eventually, everything either is or isn't.",
+          "sha256": "5c7ee5e3ba58ec0ade504ba94434dfca184766e8c3367f544ffdab4bbd443a12"
+        },
+        {
+          "file": "sounds/your_opinion_means_very_little_to_me.mp3",
+          "label": "Your opinion means very little to me.",
+          "sha256": "8e244e292cb72ed46d4d872b3fb0e5af55b1a6e16d4fc62a3c49a91f9020de18"
+        },
+        {
+          "file": "sounds/youre_like_hitler_but_even_hitler_cared_about_germany.mp3",
+          "label": "You're like Hitler, but even Hitler cared about Germany!",
+          "sha256": "6394102e8e9315832aaeede43fd7d6e990748605223d38e748b159365c2bc516"
+        },
+        {
+          "file": "sounds/arent_you_gonna_join_us_in_the_pooping.mp3",
+          "label": "Aren't you gonna join us in the poopin'?",
+          "sha256": "37eb6d964668b4cc048b1a333d89c46a23d04d7c6a4d5a7a983dac0e68e9ab55"
+        },
+        {
+          "file": "sounds/no_such_thing_as_a_bad_idea_except_all_of_mine_right.mp3",
+          "label": "No such thing as a bad idea, except all of mine, right?",
+          "sha256": "f9e6bb97fb1292473a847bdbeee72ad96203f3bfe410148874dda333c9926b12"
+        }
+      ]
+    },
+    "resource.limit": {
+      "sounds": [
+        {
+          "file": "sounds/guys_we_get_it_its_a_code_red_enough.mp3",
+          "label": "Guys, we get it. It's a code red. Enough.",
+          "sha256": "c8aa125e86575e938fc034be4e28ed52a71a3fbb21d2a667a88b64e9ffae4b2b"
+        },
+        {
+          "file": "sounds/there_is_no_god_summer.mp3",
+          "label": "There is no God, Summer.",
+          "sha256": "3bef4d65b2f9ba168d1088e141933526c3a1cd60d08e92aecec5c1c2f82790d5"
+        },
+        {
+          "file": "sounds/because_i_m_having_a_party.mp3",
+          "label": "Because I'm having a party, bitch!",
+          "sha256": "1cfa6951ab5d43bcc0f153b6bf23e0891b85c8be4a69374d3efbb8411ba142c2"
+        },
+        {
+          "file": "sounds/i_said_im_not_leaving_without_a_selfie.mp3",
+          "label": "I said I'm not leaving without a selfie.",
+          "sha256": "373647a99fc3938fb67af6c728c064b44994e28d6ca3ef9e747f28cfa2a13f8a"
+        },
+        {
+          "file": "sounds/to_live_is_to_risk_it_all.mp3",
+          "label": "To live is to risk it all. Otherwise, you're just an inert chunk of randomly assembled molecules drifting wherever the universe blows you.",
+          "sha256": "8e203aabad9e465881e03a02c2e6e0aa10af2d1b46a5822f4c1b77108a21b46c"
+        },
+        {
+          "file": "sounds/its_a_terrifying_thing_to_watch_happen.mp3",
+          "label": "It's a terrifying thing to watch happen.",
+          "sha256": "090f9cf077055e365c8d2eac0d1e8232836f73a2cea9d4e181c0879b5ff1c2de"
+        }
+      ]
+    },
+    "user.spam": {
+      "sounds": [
+        {
+          "file": "sounds/shut_up_summer.mp3",
+          "label": "Shut up, Summer.",
+          "sha256": "eac297ce2668a0c05e07fbcbd25c58753c6786c69dbf6785a9a7d85feb376fb7"
+        },
+        {
+          "file": "sounds/you_ask_a_lot_of_questions_morty_not_very_charismatic.mp3",
+          "label": "You ask a lot of questions, Morty. Not very charismatic.",
+          "sha256": "7c8159b95bdec5003a67a08489c24e9dd0674c1e503a50c4506595de9d8fbbc0"
+        },
+        {
+          "file": "sounds/everybody_fuck_off.mp3",
+          "label": "Everybody fuck off!",
+          "sha256": "8e11e0d2e13fc484165a30bdd4544fd8fae04027836416b1a8323c9d5331854e"
+        },
+        {
+          "file": "sounds/fuck_you_summer_and_fuck_the_government.mp3",
+          "label": "Fuck you, Summer! And fuck the government!",
+          "sha256": "b2b8df09fcf144bb01cd99bc824cb376921f4d40e0528e6cb1729f4442482065"
+        },
+        {
+          "file": "sounds/my_generation_gets_traumatised_for_breakfast.mp3",
+          "label": "Bitch, my generation gets traumatized for breakfast!",
+          "sha256": "bfb14d4ae37d6136657df430a73536919f8357d5bc77b6d34ecfa7aab5d6d10d"
+        },
+        {
+          "file": "sounds/in_reality_youre_as_dumb_as_they_come.mp3",
+          "label": "In reality, you're as dumb as they come.",
+          "sha256": "c3372dcee51ccd09435825d28cd776547b84c9a0f55320fce2152af2601093a9"
+        },
+        {
+          "file": "sounds/china_doesnt_piss_on_the_white_house.mp3",
+          "label": "China doesn't piss on the white house.",
+          "sha256": "c6a110d2c11317932748ac249a3433fa0dc85c38c0aec0ab9a296a3f330806f7"
+        }
+      ]
+    },
+    "session.end": {
+      "sounds": [
+        {
+          "file": "sounds/goodbyeeee.mp3",
+          "label": "Goodbye",
+          "sha256": "37820cdf1f5787591f58897c5adacdc4c39a42c211ae205e11539bfa45f8ffdb"
+        },
+        {
+          "file": "sounds/sad_outro.mp3",
+          "label": "[Sad outro music]",
+          "sha256": "56e42958f4681cac9b79123e17c1c8b7c0b909eae97991d7bb50c3f0983c21c0"
+        },
+        {
+          "file": "sounds/i_ll_talk_to_you_after_lunch.mp3",
+          "label": "I'll talk to you after lunch.",
+          "sha256": "8521ea75c52e863c5df49569c3acfbf0bebb9eb97bcf2e5142fd11e5a5e7481e"
+        },
+        {
+          "file": "sounds/weddings_are_basically_funerals_with_cake.mp3",
+          "label": "Weddings are basically funerals with cake.",
+          "sha256": "8f889fc7061d1a8785eb70c466380e411bbd4416c5887e71503878e1553e26de"
+        },
+        {
+          "file": "sounds/the_outside_world_is_our_enemy_morty.mp3",
+          "label": "The outside world is our enemy, Morty.",
+          "sha256": "3ebdd09ca3de0d269ff0251a3b319783900c851ed0567da51ff3b5eb233266ee"
+        },
+        {
+          "file": "sounds/im_gonna_go_take_a_shit.mp3",
+          "label": "I'm gonna go take a shit.",
+          "sha256": "a2d6d236d28b8dec86ab4b0ae4ad73404806873714dadb09fa00e714008b0574"
+        },
+        {
+          "file": "sounds/so_as_they_say_in_canada.mp3",
+          "label": "So as they say in Canada, peace oot!",
+          "sha256": "2aa363468faa9278e175dbd0e12b6bf1e5ee7e302f212aab0fbc6e8cc80a6f8b"
+        },
+        {
+          "file": "sounds/and_then_we_are_gonna_go_on_even_more_adventures.mp3",
+          "label": "And then we're going to go on even more adventures.",
+          "sha256": "93eb26e9eac44aa8d879ed12ef9babc7075adabc87d84081b977ce396a73ada4"
+        },
+        {
+          "file": "sounds/everybody_is_gonna_die.mp3",
+          "label": "Everybody's gonna die!",
+          "sha256": "685f9061e4542ee645edb524011d8577146290ee96c64b951efdcced5fd1d5e5"
+        },
+        {
+          "file": "sounds/but_there_was_no_sound_he_just_died.mp3",
+          "label": "There was no sound. He just died.",
+          "sha256": "4d8e6e9b6b1b689b65e5afcdbf9713a75b33acbeb11fa9d51d58d2c696ead3ef"
+        },
+        {
+          "file": "sounds/death_what_kind_instant.mp3",
+          "label": "Death. What kind? Instant.",
+          "sha256": "35601a9f1458e59ee99c65282125e86fb7e3d806f0a85af88c72de544503ab96"
+        },
+        {
+          "file": "sounds/you_killed_the_simpsons_morty.mp3",
+          "label": "Dude, you killed the Simpsons, Morty!",
+          "sha256": "c917cf9e8ab2dee24fd1d4d8f814d87bcffbc1be55ddd313eee6e9a191f51883"
+        },
+        {
+          "file": "sounds/what_so_everyone_supposed_to_sleep_every_night.mp3",
+          "label": "What, so everyone's supposed to sleep every single night now?",
+          "sha256": "cf280d9a9adf4d82e4bdf15e6f26bdd0a63f6b631467b8a9bb0af0cd65887e4a"
+        },
+        {
+          "file": "sounds/the_world_is_full_of_idiots_who_dont_understand_whats_important.mp3",
+          "label": "The world is full of idiots that don't understand what's important.",
+          "sha256": "31af534358e1d8b1e8cb54ec2c4e4ad8c7003cf0062b40706a58bb25a040cf55"
+        },
+        {
+          "file": "sounds/youre_kinda_killing_the_vibe_in_here.mp3",
+          "label": "You're kinda killing the vibe in here.",
+          "sha256": "bd8cf84dc5130f2a15b8cdb54e9acbea575265b31bbe1776a8f810b2eddfd907"
+        },
+        {
+          "file": "sounds/in_bird_culture_this_is_considered_a_dick_move.mp3",
+          "label": "In bird culture, this is considered a dick move.",
+          "sha256": "b06ffedaadc7eb38dec9e8f087300ceaee7a710ad0feece1c03283340fb884c8"
+        },
+        {
+          "file": "sounds/whatever_you_say_stone_cold_steve_austin.mp3",
+          "label": "Whatever you say, Stone Cold Steve Austin.",
+          "sha256": "e454de93e923bc57f20c86242d97fa5e670ae26e352a45e07433e0b41dcd2d8e"
+        }
+      ]
+    }
+  }
+}

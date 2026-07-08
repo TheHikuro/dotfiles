@@ -13,5 +13,11 @@
 # NuShell history (données locales)
 .config/nushell/history.txt
 
+# peon-ping runtime state (données locales)
+.claude/hooks/peon-ping/.state.json
+.claude/hooks/peon-ping/.sound.pid
+.claude/hooks/peon-ping/.last_update_check
+.claude/hooks/peon-ping/*.log
+
 # Caches
 .cache/
