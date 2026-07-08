@@ -899,6 +899,16 @@ def gbr_safe [] {
   | each {|name| git branch -D $name}
 }
 
+def env-encrypt [file: string] {
+  sops -e --input-type dotenv --output-type dotenv $file | save -f .env.encrypted
+  print $"Encrypted ($file) -> .env.encrypted"
+}
+
+def env-decrypt [file: string = ".env"] {
+  sops -d --input-type dotenv --output-type dotenv .env.encrypted | save -f $file
+  print $"Decrypted .env.encrypted -> ($file)"
+}
+
 alias l = ls --all
 alias c = clear
 alias ll = ls -l
