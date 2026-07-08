@@ -895,7 +895,7 @@ def gbr_safe [] {
   git branch
   | lines
   | each {|b| $b | str trim }
-  | where {|name| (not ($name | str starts-with "*")) and ($name != "main") and ($name != "master")}
+  | where {|name| (not ($name | str starts-with "*")) and ($name != "main") and ($name != "develop")}
   | each {|name| git branch -D $name}
 }
 
