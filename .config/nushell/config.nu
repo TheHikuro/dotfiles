@@ -909,6 +909,23 @@ def env-decrypt [file: string = ".env"] {
   print $"Decrypted .env.encrypted -> ($file)"
 }
 
+def shrink-img [input: string, --max-kb: int = 1000, --out: string = ""] {
+    let out = if $out == "" { $"($input | path parse | get stem)_small.jpg" } else { $out }
+    cp $input $out
+
+    mut quality = 90
+    loop {
+        sips -s format jpeg -s formatOptions $quality $input --out $out | ignore
+        let size_kb = (ls $out | get size.0 | into int) / 1000
+
+        print $"quality ($quality) -> ($size_kb | math round)KB"
+
+        if $size_kb <= $max_kb or $quality <= 10 { break }
+        $quality = $quality - 10
+    }
+    print $"Done: ($out)"
+}
+
 alias l = ls --all
 alias c = clear
 alias ll = ls -l
