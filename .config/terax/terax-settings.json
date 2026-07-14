@@ -1,18 +1,18 @@
 {
-  "autocompleteModelId": "claude-sonnet-4-6",
+  "backgroundKind": "image",
+  "backgroundOpacity": 0.45,
+  "vimMode": true,
+  "defaultModelId": "claude-sonnet-4-6",
+  "backgroundBlur": 7,
   "autocompleteProvider": "anthropic",
   "backgroundImageId": "b239f718-93d9-487f-ac98-c703037bc950",
-  "vimMode": true,
-  "backgroundOpacity": 0.45,
-  "terminalShell": "/opt/homebrew/bin/nu",
   "recentModelIds": [
     "claude-sonnet-4-6",
     "gpt-5.4-mini"
   ],
-  "backgroundBlur": 7,
-  "themeId": "catppuccin",
-  "defaultModelId": "claude-sonnet-4-6",
-  "showHidden": true,
   "autocompleteEnabled": true,
-  "backgroundKind": "image"
+  "terminalShell": "/opt/homebrew/bin/nu",
+  "showHidden": true,
+  "autocompleteModelId": "claude-sonnet-4-6",
+  "themeId": "catppuccin"
 }
