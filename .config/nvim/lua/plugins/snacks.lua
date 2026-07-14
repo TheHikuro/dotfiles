@@ -22,22 +22,22 @@ return {
         files = {
           hidden = true,
           ignored = true,
-          exclude = { "node_modules", ".git", "dist", "coverage" },
+          exclude = { "node_modules", ".git", "dist", "coverage", ".next" },
         },
         grep = {
           hidden = true,
           ignored = true,
-          exclude = { "node_modules", "dist", "coverage" },
+          exclude = { "node_modules", "dist", "coverage", ".next" },
         },
         grep_word = {
           hidden = true,
           ignored = true,
-          exclude = { "node_modules", "dist", "coverage" },
+          exclude = { "node_modules", "dist", "coverage", ".next" },
         },
         smart = {
           hidden = true,
           ignored = true,
-          exclude = { "node_modules", ".git", "dist", "coverage" },
+          exclude = { "node_modules", ".git", "dist", "coverage", ".next" },
         },
       },
       enable = true,
