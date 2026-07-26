@@ -6,12 +6,17 @@
 --
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
+-- Auto-fix with oxc (oxlint) on save.
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = { "*.ts", "*.tsx", "*.js", "*.jsx" },
-  callback = function()
-    local clients = vim.lsp.get_clients({ name = "eslint" })
-    if #clients > 0 then
-      vim.cmd("LspEslintFixAll")
+  callback = function(event)
+    local clients = vim.lsp.get_clients({ bufnr = event.buf, name = "oxlint" })
+    if #clients == 0 then
+      return
     end
+    vim.lsp.buf.code_action({
+      context = { only = { "source.fixAll.oxc" }, diagnostics = {} },
+      apply = true,
+    })
   end,
 })
