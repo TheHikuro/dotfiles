@@ -1,3 +1,32 @@
+-- Files/dirs to keep out of pickers and search, mirroring Zed's
+-- `file_scan_exclusions` plus common build output and lock files.
+-- Note: `.gitignore` is already respected (ignored = false), so most
+-- build dirs are hidden automatically; these cover repos that don't ignore them.
+local search_exclude = {
+  ".git",
+  ".svn",
+  ".hg",
+  ".jj",
+  ".DS_Store",
+  "Thumbs.db",
+  ".classpath",
+  ".settings",
+  "node_modules",
+  "dist",
+  "build",
+  "coverage",
+  ".next",
+  ".nuxt",
+  ".turbo",
+  ".cache",
+  "*.min.js",
+  "*.map",
+  "package-lock.json",
+  "yarn.lock",
+  "pnpm-lock.yaml",
+  "bun.lockb",
+}
+
 return {
   "folke/snacks.nvim",
   priority = 1000,
@@ -21,28 +50,28 @@ return {
       sources = {
         files = {
           hidden = true,
-          ignored = true,
-          exclude = { "node_modules", ".git", "dist", "coverage", ".next" },
+          ignored = false,
+          exclude = search_exclude,
         },
         grep = {
           hidden = true,
-          ignored = true,
-          exclude = { "node_modules", "dist", "coverage", ".next" },
+          ignored = false,
+          exclude = search_exclude,
         },
         grep_word = {
           hidden = true,
-          ignored = true,
-          exclude = { "node_modules", "dist", "coverage", ".next" },
+          ignored = false,
+          exclude = search_exclude,
         },
         smart = {
           hidden = true,
-          ignored = true,
-          exclude = { "node_modules", ".git", "dist", "coverage", ".next" },
+          ignored = false,
+          exclude = search_exclude,
         },
       },
       enable = true,
       hidden = true,
-      ignored = true,
+      ignored = false,
     },
     quickfile = { enabled = true },
     scope = { enabled = true },
