@@ -11,6 +11,7 @@
 #   PEON_BUNDLE_ID      macOS terminal bundle ID for click-to-focus (empty = skip)
 #   PEON_IDE_PID        macOS IDE ancestor PID for click-to-focus (empty = skip)
 #   PEON_CMUX_*         cmux workspace/surface/socket/CLI for exact click-to-focus
+#   PEON_SESSION_TTY    session tty for iTerm2 exact tab/window click-to-focus
 #   PEON_NOTIF_POSITION notification position: top-center|top-right|top-left|bottom-right|bottom-left|bottom-center
 #   PEON_NOTIF_DISMISS  dismiss time in seconds (0 = persistent until clicked)
 #   TERM_PROGRAM        Terminal emulator name (for iTerm2/Kitty escape sequences)
@@ -143,6 +144,46 @@ _cmux_click_command() {
   printf '%s\n' "${click_command% }"
 }
 
+# Build a click command that focuses the exact window the session lives in,
+# rather than just activating the app (with several windows open, -activate
+# lands on whichever was focused last, not the one that pinged). Used when no
+# cmux target or explicit PEON_CLICK_COMMAND is set.
+#   iTerm2:         select the tab/session whose tty matches PEON_SESSION_TTY
+#                   (same approach as the overlay's session focus)
+#   VS Code family: `open -b <bundle> <workspace dir>` raises the window that
+#                   has the workspace open. VS Code, Cursor, and Windsurf all
+#                   set TERM_PROGRAM=vscode; the caller has already resolved
+#                   the running IDE's bundle id. Uses the git toplevel as the
+#                   workspace dir (the hook cwd may be a subdirectory, which
+#                   would open a new window instead of focusing the existing
+#                   one), falling back to the cwd outside a repo.
+_terminal_focus_click_command() {
+  local bundle_id="$1"
+  local session_tty="$2"
+  local focus_dir jxa
+
+  if [ "$bundle_id" = "com.googlecode.iterm2" ] && [ -n "$session_tty" ]; then
+    jxa='function run(argv){var tty=argv[0];var iTerm=Application("iTerm2");var ws=iTerm.windows();'
+    jxa+='for(var w=0;w<ws.length;w++){var ts=ws[w].tabs();'
+    jxa+='for(var t=0;t<ts.length;t++){var ss=ts[t].sessions();'
+    jxa+='for(var s=0;s<ss.length;s++){try{if(ss[s].tty()===tty)'
+    jxa+='{ts[t].select();ss[s].select();ws[w].index=1;iTerm.activate();return}}catch(e){}}}}'
+    jxa+='iTerm.activate()}'
+    printf '/usr/bin/osascript -l JavaScript -e %q %q' "$jxa" "$session_tty"
+    return 0
+  fi
+
+  if [ "${TERM_PROGRAM:-}" = "vscode" ] && [ -n "$bundle_id" ]; then
+    focus_dir="$(git rev-parse --show-toplevel 2>/dev/null)" || focus_dir=""
+    [ -n "$focus_dir" ] || focus_dir="$PWD"
+    [ -d "$focus_dir" ] || return 1
+    printf '/usr/bin/open -b %q %q' "$bundle_id" "$focus_dir"
+    return 0
+  fi
+
+  return 1
+}
+
 _cmux_notify() {
   local cmux_cli="$1"
   local cmux_workspace_id="$2"
@@ -254,6 +295,7 @@ case "$PEON_PLATFORM" in
       overlay_script="$(_find_overlay)" 2>/dev/null || true
     bundle_id="${PEON_BUNDLE_ID:-}"
     ide_pid="${PEON_IDE_PID:-}"
+    warp_focus_url="${PEON_WARP_FOCUS_URL:-}"
     cmux_workspace_id="${PEON_CMUX_WORKSPACE_ID:-}"
     cmux_surface_id="${PEON_CMUX_SURFACE_ID:-}"
     cmux_socket_path="${PEON_CMUX_SOCKET_PATH:-}"
@@ -264,6 +306,27 @@ case "$PEON_PLATFORM" in
     cmux_focus_helper="$(_find_cmux_focus_helper)" 2>/dev/null || true
     if [ -z "$click_command" ]; then
       click_command="$(_cmux_click_command "$cmux_focus_helper" "$cmux_cli" "$cmux_socket_path" "$cmux_workspace_id" "$cmux_surface_id")" || true
+    fi
+    # Inside tmux, clicking the overlay must also switch tmux to the agent's own
+    # window/pane — activating the terminal app alone lands on whatever tmux
+    # window was last active. Build a focus command (explicit -S socket so it
+    # works from the overlay's detached env) targeting this agent's pane. Tried
+    # before the generic terminal-window focus below, since the overlay already
+    # raises the hosting terminal window natively and the pane switch is the
+    # part that only tmux can do.
+    if [ -z "$click_command" ] && [ -n "${TMUX:-}" ] && [ -n "${TMUX_PANE:-}" ] && command -v tmux >/dev/null 2>&1; then
+      _pp_tsock=$(printf '%q' "${TMUX%%,*}")
+      _pp_tpane=$(printf '%q' "$TMUX_PANE")
+      click_command="tmux -S $_pp_tsock switch-client -t $_pp_tpane 2>/dev/null; tmux -S $_pp_tsock select-window -t $_pp_tpane 2>/dev/null; tmux -S $_pp_tsock select-pane -t $_pp_tpane 2>/dev/null"
+    fi
+    if [ -z "$click_command" ]; then
+      click_command="$(_terminal_focus_click_command "$bundle_id" "${PEON_SESSION_TTY:-}")" || true
+      # The overlay focuses iTerm2 sessions natively but cannot derive an IDE
+      # window target itself; hand it the command via the env passthrough it
+      # already honors.
+      if [ -n "$click_command" ] && [ -z "${PEON_CLICK_COMMAND:-}" ] && [ "$bundle_id" != "com.googlecode.iterm2" ]; then
+        export PEON_CLICK_COMMAND="$click_command"
+      fi
     fi
     _notify_debug "mac overlay_script=$(printf '%q' "$overlay_script") bundle=$(printf '%q' "$bundle_id") click_command=$(printf '%q' "$click_command") workspace=$(printf '%q' "$cmux_workspace_id") surface=$(printf '%q' "$cmux_surface_id")"
     if [ -n "$overlay_script" ]; then
@@ -377,6 +440,7 @@ case "$PEON_PLATFORM" in
           for _si in $(seq 0 $((screen_count - 1))); do
             _notify_debug "overlay spawn screen=$_si"
             PEON_CLICK_COMMAND="$click_command" \
+            PEON_WARP_FOCUS_URL="$warp_focus_url" \
             PEON_CMUX_FOCUS_HELPER="$cmux_focus_helper" \
             PEON_CMUX_FOCUS_CLI="$cmux_cli" \
             PEON_CMUX_FOCUS_SOCKET="$cmux_socket_path" \
@@ -388,6 +452,7 @@ case "$PEON_PLATFORM" in
         else
           _notify_debug "overlay spawn mode=single dismiss=$dismiss_secs script=$(printf '%q' "$overlay_script")"
           PEON_CLICK_COMMAND="$click_command" \
+          PEON_WARP_FOCUS_URL="$warp_focus_url" \
           PEON_CMUX_FOCUS_HELPER="$cmux_focus_helper" \
           PEON_CMUX_FOCUS_CLI="$cmux_cli" \
           PEON_CMUX_FOCUS_SOCKET="$cmux_socket_path" \

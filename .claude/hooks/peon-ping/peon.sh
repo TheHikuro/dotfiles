@@ -187,6 +187,9 @@ if [ ! -d "$PEON_DIR/packs" ]; then
   fi
   unset _hooks_dir
 fi
+# Ensure the data dir exists before any config/state write (#561: fresh install
+# has no ~/.openpeon yet, and the setup wizard writes config.json directly).
+mkdir -p "$PEON_DIR" 2>/dev/null || true
 # Local project config overrides global config
 _local_config="${PWD}/.claude/hooks/peon-ping/config.json"
 if [ -f "$_local_config" ]; then
@@ -597,12 +600,36 @@ play_sound() {
           Add-Type -AssemblyName PresentationCore
           \$p = New-Object System.Windows.Media.MediaPlayer
           \$p.Volume = $vol
+          Register-ObjectEvent -InputObject \$p -EventName MediaOpened -SourceIdentifier PeonWslOpened | Out-Null
+          Register-ObjectEvent -InputObject \$p -EventName MediaFailed -SourceIdentifier PeonWslFailed | Out-Null
           \$p.Open([Uri]'$wpath')
-          Start-Sleep -Milliseconds 500
           \$p.Play()
-          while (\$p.Position -lt \$p.NaturalDuration.TimeSpan -and \$p.Position.TotalSeconds -lt 10) {
-            Start-Sleep -Milliseconds 100
+          # Pump the WPF dispatcher so MediaOpened fires and NaturalDuration resolves.
+          # Polling \$p.Position against NaturalDuration broke on Windows builds
+          # where the duration is not yet available right after Open (HasTimeSpan
+          # is False, so TimeSpan reads 00:00:00), which cut playback to ~0ms and
+          # left hook events silent (issue #558).
+          \$deadline = [datetime]::UtcNow.AddSeconds(5)
+          \$opened = \$false
+          while ([datetime]::UtcNow -lt \$deadline) {
+            [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Invoke(
+              [System.Windows.Threading.DispatcherPriority]::Background, [Action]{ }
+            )
+            if (Get-Event -SourceIdentifier PeonWslFailed -ErrorAction SilentlyContinue) { break }
+            if (Get-Event -SourceIdentifier PeonWslOpened -ErrorAction SilentlyContinue) { \$opened = \$true; break }
+            Start-Sleep -Milliseconds 50
           }
+          if (\$opened) {
+            if (\$p.NaturalDuration.HasTimeSpan) {
+              \$secs = [math]::Min(\$p.NaturalDuration.TimeSpan.TotalSeconds, 10)
+              Start-Sleep -Seconds ([math]::Ceiling(\$secs))
+            } else {
+              Start-Sleep -Seconds 3
+            }
+          }
+          Unregister-Event -SourceIdentifier PeonWslOpened -ErrorAction SilentlyContinue
+          Unregister-Event -SourceIdentifier PeonWslFailed -ErrorAction SilentlyContinue
+          \$p.Stop()
           \$p.Close()
         " &>/dev/null &
         save_sound_pid $!
@@ -972,6 +999,8 @@ send_notification() {
       if [ "$PEON_PLATFORM" = "mac" ]; then
         export PEON_BUNDLE_ID="$(_mac_terminal_bundle_id)"
         export PEON_IDE_PID="$(_mac_ide_pid)"
+        # Warp's per-session deep link; opening it on click focuses the exact tab.
+        export PEON_WARP_FOCUS_URL="${WARP_FOCUS_URL:-}"
         _peon_cmux_surface="${CMUX_SURFACE_ID:-${CMUX_PANEL_ID:-}}"
         _peon_cmux_cli="$(_cmux_cli_path)"
         if [ -n "${CMUX_WORKSPACE_ID:-}" ] && [ -n "$_peon_cmux_surface" ] && [ -n "$_peon_cmux_cli" ]; then
@@ -1024,7 +1053,36 @@ send_notification() {
 }
 
 # --- Platform-aware terminal focus check ---
+# Returns 0 if the agent's own tmux pane is the one currently on screen
+# (active pane, active window, attached session); 1 if it's in a background
+# tmux window/pane or a detached session. No-op (returns 0) outside tmux or
+# when the state can't be determined, so callers fall through to app checks.
+_tmux_pane_is_current() {
+  [ -n "${TMUX:-}" ] || return 0
+  local pane info attached window_active pane_active
+  pane="${TMUX_PANE:-}"
+  if [ -n "$pane" ]; then
+    info=$(tmux display-message -p -t "$pane" '#{session_attached} #{window_active} #{pane_active}' 2>/dev/null || true)
+  else
+    info=$(tmux display-message -p '#{session_attached} #{window_active} #{pane_active}' 2>/dev/null || true)
+  fi
+  [ -z "$info" ] && return 0
+  attached=$(printf '%s\n' "$info" | awk '{print $1}')
+  window_active=$(printf '%s\n' "$info" | awk '{print $2}')
+  pane_active=$(printf '%s\n' "$info" | awk '{print $3}')
+  if [ "${attached:-0}" -ge 1 ] 2>/dev/null && [ "$window_active" = "1" ] && [ "$pane_active" = "1" ]; then
+    return 0
+  fi
+  return 1
+}
+
 terminal_is_focused() {
+  # tmux-aware short-circuit: if this agent's pane isn't the one on screen
+  # (background window/pane or detached session), treat as NOT focused so the
+  # notification fires regardless of which terminal app is frontmost.
+  if [ -n "${TMUX:-}" ] && ! _tmux_pane_is_current; then
+    return 1
+  fi
   case "$PEON_PLATFORM" in
     mac)
       local frontmost
