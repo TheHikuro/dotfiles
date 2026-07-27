@@ -7,6 +7,12 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "code_lens": "on",
+  "ui_font_family": ".ZedMono",
+  "buffer_font_family": "JetBrainsMono Nerd Font",
+  "remove_trailing_whitespace_on_save": false,
+  "ensure_final_newline_on_save": false,
+  "format_on_save": "on",
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "dock": "left",
@@ -40,7 +46,7 @@
       "insert": "bar",
     },
   },
-  "vim_mode": false,
+  "vim_mode": true,
   "cursor_blink": false,
   "cursor_shape": "block",
   "icon_theme": {
