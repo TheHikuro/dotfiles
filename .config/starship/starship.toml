@@ -22,6 +22,64 @@ threshold = 0
 symbol = "💾 "
 format = "via $symbol[$ram]($style) "
 
+# ── Claude Code statusline ───────────────────────────────────────────────────
+# Rendered by `starship statusline claude-code`, wired up in ~/.claude/settings.json.
+# The claude_* modules only emit when Claude Code pipes its hook JSON on stdin,
+# so they stay invisible in the normal shell prompt (they are not part of $all).
+[profiles]
+claude-code = "$claude_model$claude_context$claude_cost$line_break$directory$git_branch$git_status"
+
+[claude_model]
+format = "[󰚩 $model]($style)"
+style = "bold mauve"
+
+[claude_model.model_aliases]
+"Opus 5 (1M context)" = "Opus 5 · 1M"
+"Sonnet 5 (1M context)" = "Sonnet 5 · 1M"
+
+[claude_context]
+disabled = false
+format = "  [󰍛 $gauge $percentage]($style)[ $input_tokens in / $output_tokens out](overlay1)"
+gauge_width = 14
+gauge_full_symbol = "█"
+gauge_partial_symbol = "▓"
+gauge_empty_symbol = "░"
+
+# heat: green -> yellow -> peach -> red as the window fills
+[[claude_context.display]]
+threshold = 0
+style = "bold green"
+
+[[claude_context.display]]
+threshold = 50
+style = "bold yellow"
+
+[[claude_context.display]]
+threshold = 70
+style = "bold peach"
+
+[[claude_context.display]]
+threshold = 85
+style = "bold red"
+
+[claude_cost]
+# $cost carries no currency sign. `symbol` is itself parsed as a format string,
+# so the literal $ must be escaped — hence the single-quoted TOML string.
+symbol = ' \$'
+format = "  [$symbol$cost]($style)[ +$lines_added -$lines_removed](overlay1)"
+
+[[claude_cost.display]]
+threshold = 0
+style = "sky"
+
+[[claude_cost.display]]
+threshold = 2.0
+style = "bold yellow"
+
+[[claude_cost.display]]
+threshold = 10.0
+style = "bold red"
+
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
 flamingo = "#f2cdcd"
