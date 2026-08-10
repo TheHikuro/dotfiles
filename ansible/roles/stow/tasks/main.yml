@@ -17,14 +17,22 @@
     - zed
     - jiratui
 
-- name: Run stow to symlink dotfiles/.config → ~/.config (omp, terax excluded — stowed to their native locations below)
+# Doit rester un vrai dossier : herdr écrit ses logs (herdr.log, herdr-client.log,
+# herdr-server.log) à côté de config.toml. Sans ça, stow symlinke le dossier entier
+# et les logs atterriraient dans le repo.
+- name: Ensure ~/.config/herdr is a real directory (only config.toml is stowed)
+  file:
+    path: "{{ home }}/.config/herdr"
+    state: directory
+
+- name: Run stow to symlink dotfiles/.config → ~/.config (omp excluded — stowed to its native location below)
   command: >
     stow
     --dir={{ dotfiles_path }}
     --target={{ home }}/.config
     --restow
     --adopt
-    --ignore=^(omp|terax)$
+    --ignore=^omp$
     .config
   args:
     chdir: "{{ dotfiles_path }}"
@@ -74,21 +82,3 @@
     chdir: "{{ dotfiles_path }}/.config"
   register: stow_omp_result
   changed_when: stow_omp_result.rc == 0
-
-- name: Ensure Terax config directory exists
-  file:
-    path: "{{ home }}/Library/Application Support/app.crynta.terax"
-    state: directory
-
-- name: Run stow to symlink dotfiles/.config/terax → ~/Library/Application Support/app.crynta.terax
-  command: >
-    stow
-    --dir={{ dotfiles_path }}/.config
-    --target={{ home }}/Library/Application\ Support/app.crynta.terax
-    --restow
-    --adopt
-    terax
-  args:
-    chdir: "{{ dotfiles_path }}/.config"
-  register: stow_terax_result
-  changed_when: stow_terax_result.rc == 0

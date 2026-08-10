@@ -75,8 +75,8 @@ run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags stow"
 [tasks.stow]
 description = "Réapplique les symlinks Stow manuellement (sans Ansible)"
 run = """
-stow --dir=. --target=~/.config --restow --ignore='^(omp|terax)$' .config
+mkdir -p ~/.config/herdr   # vrai dossier : herdr y écrit ses logs, seul config.toml est stowé
+stow --dir=. --target=~/.config --restow --ignore='^omp$' .config
 stow --dir=. --target=~/.claude --restow .claude
 stow --dir=.config --target=~/.omp omp
-stow --dir=.config --target="$HOME/Library/Application Support/app.crynta.terax" terax
 """
