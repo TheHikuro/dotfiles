@@ -9,6 +9,7 @@
     state: absent
   loop:
     - nushell
+    - fish
     - nvim
     - starship
     - zellij

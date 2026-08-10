@@ -10,6 +10,7 @@ pnpm = "latest"
 node = "latest"
 "github:can1357/oh-my-pi" = "latest"
 go = "latest"
+java = "zulu-17.68.17.0"
 
 [settings]
 auto_install = true
@@ -62,6 +63,10 @@ run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags nvim"
 [tasks.ansible-nushell]
 description = "Déploie uniquement la config NuShell"
 run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags nushell"
+
+[tasks.ansible-fish]
+description = "Déploie uniquement la config fish"
+run = "ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags fish"
 
 [tasks.ansible-stow]
 description = "Déploie uniquement les symlinks Stow"

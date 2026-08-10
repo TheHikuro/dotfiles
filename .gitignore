@@ -13,6 +13,12 @@
 # NuShell history (données locales)
 .config/nushell/history.txt
 
+# fish : variables universelles + completions générées (état local, pas de config)
+# L'historique fish vit dans ~/.local/share/fish/, hors du repo.
+.config/fish/fish_variables
+.config/fish/completions/
+.config/fish/conf.d/*_generated.fish
+
 # peon-ping runtime state (données locales)
 .claude/hooks/peon-ping/.state.json
 .claude/hooks/peon-ping/.sound.pid

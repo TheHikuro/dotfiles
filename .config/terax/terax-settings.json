@@ -11,7 +11,7 @@
     "gpt-5.4-mini"
   ],
   "autocompleteEnabled": true,
-  "terminalShell": "/opt/homebrew/bin/nu",
+  "terminalShell": "/opt/homebrew/bin/fish",
   "showHidden": true,
   "autocompleteModelId": "claude-sonnet-4-6",
   "themeId": "catppuccin"

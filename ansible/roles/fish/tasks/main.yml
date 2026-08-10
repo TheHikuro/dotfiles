@@ -1,0 +1,42 @@
+- name: Install fish via Homebrew
+  homebrew:
+    name: fish
+    state: present
+
+- name: Install shell dependencies
+  homebrew:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - zoxide
+    - carapace
+    - starship
+    - fzf
+
+# Contrairement à nushell, fish lit directement ~/.config/fish : pas de fichiers
+# d'entrée à générer dans ~/Library/Application Support, c'est stow qui fait le
+# lien. De même, `<tool> | source` fonctionne à la volée en fish, donc aucun
+# fichier d'init à pré-générer dans ~/.cache (voir conf.d/20-tools.fish).
+
+# ─── Bascule du shell par défaut (opt-in) ────────────────────────────────────
+# fish est le shell de connexion (`target_shell` dans group_vars/all.yml), mais
+# ces deux tâches demandent sudo. Elles restent donc opt-in pour que le playbook
+# complet et `mise run ansible-fish` s'exécutent sans mot de passe.
+#
+# À lancer une fois, sur une machine neuve ou après un retour vers nushell :
+#   ansible-playbook ansible/setup.yml -i ansible/hosts.ini \
+#     --tags fish -K -e fish_set_default=true
+
+- name: Register fish in /etc/shells
+  become: true
+  lineinfile:
+    path: /etc/shells
+    line: "{{ homebrew_bin }}/fish"
+    state: present
+  when: fish_set_default | default(false) | bool
+
+- name: Set fish as default shell
+  become: true
+  command: dscl . -create /Users/{{ ansible_user_id }} UserShell {{ target_shell }}
+  when: fish_set_default | default(false) | bool
+  changed_when: true

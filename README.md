@@ -9,7 +9,8 @@ Personal macOS setup, fully managed and deployed via Ansible + GNU Stow. Not int
 | [Ansible](https://www.ansible.com/)                 | Deployment & automation                             |
 | [GNU Stow](https://www.gnu.org/software/stow/)      | Dotfiles symlink manager                            |
 | [MISE](https://mise.jdx.dev/)                       | Universal version manager (Node, Rust, Ruby, Java…) |
-| [NuShell](https://www.nushell.sh/)                  | Primary shell                                       |
+| [fish](https://fishshell.com/)                      | Primary shell                                       |
+| [NuShell](https://www.nushell.sh/)                  | Fallback shell (kept configured, not the default)   |
 | [Starship](https://starship.rs/)                    | Prompt                                              |
 | [Ghostty](https://ghostty.org/)                     | Terminal emulator                                   |
 | [Zellij](https://zellij.dev/)                       | Terminal multiplexer                                |
@@ -35,7 +36,7 @@ The script runs in order: Xcode CLI Tools → Homebrew → Git → MISE → Ansi
 
 ```bash
 # Install only specific components
-ANSIBLE_TAGS="nvim,nushell" bash ./scripts/bootstrap.sh
+ANSIBLE_TAGS="nvim,fish" bash ./scripts/bootstrap.sh
 
 # Dry-run — shows what would change, modifies nothing
 CHECK=1 bash ./scripts/bootstrap.sh
@@ -51,6 +52,7 @@ mise run ansible-run         # run playbook only
 mise run ansible-check       # playbook dry-run
 mise run ansible-nvim        # deploy nvim config only
 mise run ansible-nushell     # deploy nushell config only
+mise run ansible-fish        # deploy fish config only
 mise run status              # show installed tool versions
 mise tasks                   # list all available tasks
 ```
@@ -63,22 +65,27 @@ Secrets are stored in the **macOS Keychain** — never in plaintext, never commi
 
 ### How it works
 
-`secrets.nu` (tracked in this repo) reads values from the Keychain at shell startup:
+Each shell reads the values from the Keychain at startup. The files are tracked in this repo and contain **no actual values** — only the list of service names to look up.
+
+fish (`.config/fish/conf.d/10-secrets.fish`) — loops over the list:
+
+```fish
+for __secret in JIRA_API_TOKEN ANTHROPIC_API_KEY SOPS_AGE_KEY
+    set -l __value (__keychain_get $__secret)
+    test -n "$__value"; and set -gx $__secret $__value
+end
+```
+
+NuShell (`.config/nushell/secrets.nu`) — one block per secret:
 
 ```nushell
-# ~/.config/nushell/secrets.nu — safe to commit, contains no actual values
 let akka_key = (keychain-get "AKKA_LICENSE_KEY")
 if ($akka_key | is-not-empty) {
   $env.AKKA_LICENSE_KEY = $akka_key
 }
 ```
 
-Secrets are sourced in **`env.nu`** (not `config.nu`) so environment variables are available to all processes, including backend servers:
-
-```nushell
-# env.nu
-source ~/.config/nushell/secrets.nu
-```
+Both are loaded in a context that also applies to **non-interactive shells** (`conf.d/` for fish, `env.nu` rather than `config.nu` for NuShell), so environment variables are available to all child processes, including backend servers.
 
 ### Automated provisioning
 
@@ -105,7 +112,13 @@ REQUIRED_SECRETS=(
 )
 ```
 
-**2. Read it in `.config/nushell/secrets.nu`:**
+**2. Add the service name to the fish loop in `.config/fish/conf.d/10-secrets.fish`:**
+
+```fish
+for __secret in JIRA_API_TOKEN ANTHROPIC_API_KEY SOPS_AGE_KEY MY_NEW_SECRET
+```
+
+**2b. (optional) Mirror it in `.config/nushell/secrets.nu`** so the fallback shell sees it too:
 
 ```nushell
 let my_secret = (keychain-get "MY_NEW_SECRET")
@@ -148,6 +161,7 @@ Stow maps `dotfiles/.config/` directly to `~/.config/`:
 
 ```
 dotfiles/.config/nushell/  →  ~/.config/nushell
+dotfiles/.config/fish/     →  ~/.config/fish
 dotfiles/.config/nvim/     →  ~/.config/nvim
 dotfiles/.config/mise/     →  ~/.config/mise
 dotfiles/.config/starship/ →  ~/.config/starship
@@ -197,6 +211,7 @@ ansible/
     ├── mise/              # Universal version manager setup
     ├── secrets/           # Keychain provisioning
     ├── nushell/           # Shell install + init files (env.nu / config.nu)
+    ├── fish/              # Secondary shell install (config comes from stow)
     ├── ghostty/           # Terminal config symlink → Library/Application Support
     ├── fonts/             # Nerd Fonts directory check
     └── stow/              # GNU Stow — ~/.config, ~/.claude, ~/.omp/agent, Terax symlinks
@@ -217,7 +232,7 @@ ansible-playbook ansible/setup.yml -i ansible/hosts.ini --check --diff
 
 ### Available tags
 
-`base` · `homebrew` · `mise` · `secrets` · `fonts` · `ghostty` · `nushell` · `stow`
+`base` · `homebrew` · `mise` · `secrets` · `fonts` · `ghostty` · `nushell` · `fish` · `stow`
 
 ### First run — install Galaxy dependencies
 
@@ -248,12 +263,59 @@ mise use node@26      # switch a specific version
 
 ---
 
-## 🐚 Shell: NuShell + Starship
+## 🐟 Shell: fish + Starship
 
-- **Shell**: NuShell (set as default via `chsh`)
+- **Shell**: fish (login shell, set via `chsh` — see below)
 - **Prompt**: Starship
-- **Completion**: Carapace (bridges zsh, fish, bash)
-- **Navigation**: Zoxide
+- **Completion**: Carapace
+- **Navigation**: Zoxide (aliased over `cd`)
+- **Fuzzy find**: fzf key bindings (`Ctrl-R` / `Ctrl-T` / `Alt-C`)
+
+Unlike NuShell, fish reads `~/.config/fish` directly — no entry-point stubs in `~/Library/Application Support/`, and no pre-generated init files in `~/.cache` (`<tool> | source` works at runtime).
+
+```
+.config/fish/
+├── config.fish            # interactive only: vi mode, cursors, 4 binds
+├── conf.d/                # auto-sourced, lexical order, before config.fish
+│   ├── 00-env.fish        # ← env.nu    (fish_add_path, set -gx, Android SDK)
+│   ├── 10-secrets.fish    # ← secrets.nu (same Keychain entries)
+│   ├── 20-tools.fish      # mise, zoxide, carapace, fzf, starship
+│   └── 30-abbr.fish       # ← the aliases (git ones become abbreviations)
+└── functions/             # lazily autoloaded, one function per file
+    ├── cx.fish  gbr.fish  vfind.fish
+    └── env-encrypt.fish  env-decrypt.fish  shrink-img.fish
+```
+
+Secrets live in `conf.d/`, which fish sources in **non-interactive shells too** — so child processes (backend servers, etc.) inherit `JIRA_API_TOKEN` & co. Same guarantee the NuShell setup got by putting them in `env.nu` rather than `config.nu`.
+
+Differences worth knowing, coming from NuShell:
+
+- `l` / `ll` now call **eza**. In NuShell they used the `ls` builtin; fish's `ls` is BSD `/bin/ls`, which rejects `--all`.
+- Git shortcuts are **abbreviations**, not aliases — they expand in the command line, so history stores the real command and you can append flags.
+- `cx` resolves `cd` to zoxide at call time (fish resolves functions late). Use `builtin cd` inside it for the strict NuShell behaviour.
+- fzf key bindings (`Ctrl-R` / `Ctrl-T` / `Alt-C`) come for free; there's no NuShell equivalent.
+- You lose structured pipelines (`ls | where size > 10mb`, `open x.json | get y`). fish is string-only — `shrink-img` and `gbr` were rewritten around `string`, `stat` and `math` because of it.
+
+### Setting fish as the login shell
+
+Needs sudo, so it's opt-in and not part of the default playbook run:
+
+```bash
+ansible-playbook ansible/setup.yml -i ansible/hosts.ini --tags fish -K -e fish_set_default=true
+```
+
+Or by hand:
+
+```bash
+echo /opt/homebrew/bin/fish | sudo tee -a /etc/shells
+chsh -s /opt/homebrew/bin/fish
+```
+
+---
+
+## 🐚 Fallback shell: NuShell
+
+NuShell is **still installed and fully configured** — it is simply no longer the login shell. Nothing was deleted; the `nushell` Ansible role and `.config/nushell/` are untouched.
 
 Config files (all symlinked via Stow):
 
@@ -263,6 +325,14 @@ Config files (all symlinked via Stow):
 - `~/.config/starship/starship.toml`
 
 NuShell on macOS loads its entry points from `~/Library/Application Support/nushell/` — these are generated by Ansible and source the real configs from dotfiles.
+
+Run `nu` for a one-off session. To make it the login shell again:
+
+```bash
+chsh -s /opt/homebrew/bin/nu
+```
+
+and set `target_shell` back to `{{ homebrew_bin }}/nu` in `ansible/group_vars/all.yml`.
 
 ---
 

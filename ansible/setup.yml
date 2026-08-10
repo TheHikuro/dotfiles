@@ -11,5 +11,6 @@
     - { role: fonts, tags: ["fonts"] }
     - { role: ghostty, tags: ["ghostty"] }
     - { role: nushell, tags: ["nushell"] }
+    - { role: fish, tags: ["fish"] }
     - { role: secrets, tags: ["secrets"] }
     - { role: stow, tags: ["stow"] }

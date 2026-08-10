@@ -4,7 +4,10 @@ home: "{{ ansible_facts['env']['HOME'] }}"
 homebrew_prefix: "{{ '/opt/homebrew' if ansible_facts['architecture'] == 'arm64' else '/usr/local' }}"
 homebrew_bin: "{{ homebrew_prefix }}/bin"
 
-target_shell: "{{ homebrew_bin }}/nu"
+# Shell par défaut. nushell reste installé et configuré comme filet de sécurité
+# (rôle `nushell`) : pour revenir en arrière, repasser cette valeur à /nu et
+# relancer `chsh -s {{ homebrew_bin }}/nu`.
+target_shell: "{{ homebrew_bin }}/fish"
 
 homebrew_packages:
   - git
@@ -12,6 +15,7 @@ homebrew_packages:
   - carapace
   - starship
   - nushell
+  - fish
   - zellij
   - mise
   - ripgrep
