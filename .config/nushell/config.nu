@@ -934,7 +934,7 @@ alias lts = eza --tree --level=2 --icons --git
 alias v = nvim
 alias vfind = v (fzf --preview="bat --color=always {}")
 alias b = bat  
-
+alias cd = z
 # Git
 alias gbr = gbr_safe
 alias lg = lazygit
