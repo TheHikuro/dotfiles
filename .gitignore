@@ -25,5 +25,8 @@
 .claude/hooks/peon-ping/.last_update_check
 .claude/hooks/peon-ping/*.log
 
+# herdr : logs runtime écrits à côté de config.toml
+.config/herdr/*.log
+
 # Caches
 .cache/
