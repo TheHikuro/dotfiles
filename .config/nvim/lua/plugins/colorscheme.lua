@@ -17,7 +17,22 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     config = function()
       require("colorizer").setup({
-        filetypes = { "*" }, -- or restrict to { "css", "scss", "sass", "less", "javascript", "typescript", "javascriptreact", "typescriptreact" }
+        -- Scoped to filetypes that actually contain colors. On "*" the full
+        -- parser chain (css_fn/oklch/oklab/tailwind) ran per visible line on
+        -- every buffer, including large JSON and log files.
+        filetypes = {
+          "css",
+          "scss",
+          "sass",
+          "less",
+          "html",
+          "javascript",
+          "typescript",
+          "javascriptreact",
+          "typescriptreact",
+          "svelte",
+          "vue",
+        },
         user_default_options = {
           rgb = true,
           rrggbb = true,
@@ -30,7 +45,10 @@ return {
           names = false,
           mode = "background", -- or "virtualtext"
           tailwind = true,
-          always_update = true,
+          -- `always_update` nvim_buf_attach'es an on_lines handler so *background*
+          -- buffers keep re-highlighting as they change. Only the visible buffer
+          -- needs to be current.
+          always_update = false,
         },
       })
     end,

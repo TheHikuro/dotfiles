@@ -31,17 +31,18 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
   install = { colorscheme = { "solarized-osaka", "habamax" } },
-  checker = {
-    enabled = true, -- check for plugin updates periodically
-    notify = false, -- notify on update
-  }, -- automatically check for plugin updates
+  -- Disabled: a periodic background `git fetch` across ~65 plugins.
+  -- Run `:Lazy check` by hand instead.
+  checker = { enabled = false },
   performance = {
     rtp = {
       -- disable some rtp plugins
       disabled_plugins = {
         "gzip",
-        -- "matchit",
-        -- "matchparen",
+        "matchit",
+        -- matchparen re-scans for the matching bracket on every CursorMoved,
+        -- which is noticeable in large JSX/TSX files.
+        "matchparen",
         -- "netrwPlugin",
         "tarPlugin",
         "tohtml",
