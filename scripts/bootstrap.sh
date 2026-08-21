@@ -221,14 +221,21 @@ run_ansible() {
   success "Playbook OK"
 }
 
-# ─── Nushell ──────────────────────────────────────────────────────────────────
-setup_nushell() {
-  step "Nushell"
+# ─── Shells ───────────────────────────────────────────────────────────────────
+setup_shells() {
+  step "Shells"
 
-  local nu_bin="/opt/homebrew/bin/nu"
+  local fish_bin="/opt/homebrew/bin/fish"
+
+  # fish is the login shell; nushell stays installed as a fallback.
+  if ! command_exists fish; then
+    log "Installing fish..."
+    brew install fish
+  fi
+  success "fish $(fish --version)"
 
   if ! command_exists nu; then
-    log "Installing Nushell..."
+    log "Installing Nushell (fallback shell)..."
     brew install nushell
   fi
   success "Nushell $(nu --version)"
@@ -237,22 +244,22 @@ setup_nushell() {
   mkdir -p "${HOME}/.config/nushell"
   success "~/.config/nushell directory OK"
 
-  # Add nu to /etc/shells if not already listed
-  if ! grep -qF "$nu_bin" /etc/shells; then
-    log "Adding ${nu_bin} to /etc/shells (requires sudo)..."
-    echo "$nu_bin" | sudo tee -a /etc/shells >/dev/null
-    success "${nu_bin} added to /etc/shells"
+  # Add fish to /etc/shells if not already listed
+  if ! grep -qF "$fish_bin" /etc/shells; then
+    log "Adding ${fish_bin} to /etc/shells (requires sudo)..."
+    echo "$fish_bin" | sudo tee -a /etc/shells >/dev/null
+    success "${fish_bin} added to /etc/shells"
   fi
 
-  # Set nushell as default shell via dscl
+  # Set fish as default shell via dscl
   local current_shell
   current_shell=$(dscl . -read "/Users/${USER}" UserShell 2>/dev/null | awk '{print $2}')
-  if [[ "$current_shell" != "$nu_bin" ]]; then
-    log "Setting nushell as default shell (requires sudo)..."
-    sudo dscl . -create "/Users/${USER}" UserShell "$nu_bin"
-    success "Default shell → ${nu_bin}"
+  if [[ "$current_shell" != "$fish_bin" ]]; then
+    log "Setting fish as default shell (requires sudo)..."
+    sudo dscl . -create "/Users/${USER}" UserShell "$fish_bin"
+    success "Default shell → ${fish_bin}"
   else
-    success "Default shell already set to nushell"
+    success "Default shell already set to fish"
   fi
 }
 
@@ -299,7 +306,7 @@ main() {
   install_mise
   install_ansible
   clone_dotfiles
-  setup_nushell
+  setup_shells
   run_ansible
   post_install
 }
