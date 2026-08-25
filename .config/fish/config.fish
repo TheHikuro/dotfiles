@@ -36,3 +36,6 @@ if status is-interactive
     bind ctrl-q history-pager # nu: search_history (Ctrl-Q)
     bind -M insert ctrl-q history-pager
 end
+
+# peon-ping quick controls
+function peon; bash /Users/loancleris/.claude/hooks/peon-ping/peon.sh $argv; end
