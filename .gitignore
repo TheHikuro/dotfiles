@@ -30,3 +30,7 @@
 
 # Caches
 .cache/
+
+# Python bytecode (généré par les scripts de .claude/commands)
+__pycache__/
+*.pyc
