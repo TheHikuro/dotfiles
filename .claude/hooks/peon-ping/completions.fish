@@ -39,6 +39,8 @@ complete -c peon -n __peon_no_subcommand -a debug -d "Toggle debug logging"
 complete -c peon -n __peon_no_subcommand -a logs -d "View or manage log files"
 complete -c peon -n __peon_no_subcommand -a relay -d "Start audio relay for devcontainers"
 complete -c peon -n __peon_no_subcommand -a trainer -d "Exercise trainer mode"
+complete -c peon -n __peon_no_subcommand -a create -d "Draft a new sound pack via your own Claude Code"
+complete -c peon -n __peon_no_subcommand -a eval -d "Open the eval gate to audition/reroll/approve a draft"
 complete -c peon -n __peon_no_subcommand -a update -d "Update peon-ping and refresh sound packs"
 complete -c peon -n __peon_no_subcommand -a help -d "Show help message"
 
@@ -205,6 +207,31 @@ end
 complete -c peon -n "__peon_using_subcommand sounds" -a list -d "List sounds in a pack"
 complete -c peon -n "__peon_using_subcommand sounds" -a disable -d "Disable an individual sound"
 complete -c peon -n "__peon_using_subcommand sounds" -a enable -d "Re-enable an individual sound"
+
+# create flags
+complete -c peon -n "__peon_using_subcommand create" -l name -d "Pack name (lowercase letters/digits/-/_)"
+complete -c peon -n "__peon_using_subcommand create" -l flavor -d "sfx (wordless) or voice (spoken)"
+complete -c peon -n "__peon_using_subcommand create" -l vibe -d "One-line vibe description"
+complete -c peon -n "__peon_using_subcommand create; and __fish_seen_argument -l flavor" -a "sfx voice"
+
+# eval: complete draft names and installed pack names
+complete -c peon -n "__peon_using_subcommand eval" -a "(
+  set -l drafts_dir \$HOME/.peon-ping/drafts
+  if test -d \$drafts_dir
+    for d in \$drafts_dir/*/
+      basename \$d
+    end
+  end
+  set -l packs_dir (set -q CLAUDE_PEON_DIR; and echo \$CLAUDE_PEON_DIR; or echo \$HOME/.claude/hooks/peon-ping)/packs
+  if not test -d \$packs_dir; and test -d \$HOME/.openpeon/packs
+    set packs_dir \$HOME/.openpeon/packs
+  end
+  if test -d \$packs_dir
+    for manifest in \$packs_dir/*/manifest.json \$packs_dir/*/openpeon.json
+      basename (dirname \$manifest)
+    end
+  end
+)"
 
 # trainer goal weekday completions (short names)
 complete -c peon -n __peon_trainer_goal -a mon -d "Monday"

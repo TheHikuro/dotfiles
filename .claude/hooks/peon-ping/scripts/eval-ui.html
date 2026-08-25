@@ -1,0 +1,389 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>peon eval</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#111418; --card:#1a1f26; --text:#e8e6e1; --dim:#8a94a3; --accent:#4fd1a5; --warn:#e0a458; }
+  body { background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; margin:0; padding:2rem; }
+  .pack-head { display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+  .card { background:var(--card); border-radius:10px; padding:1rem; margin:.5rem 0; display:flex; gap:.75rem; align-items:center; }
+  button { background:var(--accent); color:#08110d; border:0; border-radius:8px; padding:.5rem .9rem; font-weight:600; cursor:pointer; }
+  button.secondary { background:transparent; color:var(--dim); border:1px solid var(--dim); }
+  button:disabled { opacity:.4; cursor:wait; }
+  .caption-box { display:none; margin-top:.5rem; width:100%; }
+  .caption-box.open { display:flex; gap:.5rem; }
+  input[type=text] { flex:1; background:#0d1013; color:var(--text); border:1px solid #2a3038; border-radius:8px; padding:.5rem; }
+  .cat { color:var(--dim); text-transform:uppercase; font-size:.75rem; letter-spacing:.08em; margin-top:1.25rem; }
+  #status { position:fixed; bottom:1rem; right:1rem; background:var(--card); padding:.6rem 1rem; border-radius:8px; display:none; }
+  .card-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:.15rem; }
+  .card-label { font-weight:600; }
+  .card-file { color:var(--dim); font-size:.8rem; word-break:break-all; }
+  .claude-note { color:var(--warn); font-size:.85rem; margin:-1rem 0 1.5rem; }
+  .prompts-note { color:var(--dim); font-size:.8rem; margin:.35rem 0 0; }
+  .success { max-width:36rem; }
+  .success .path { color:var(--dim); word-break:break-all; }
+  .success code { background:var(--card); padding:.15rem .4rem; border-radius:4px; }
+</style></head>
+<body>
+<div class="pack-head">
+  <h1 id="packname" style="margin:0"></h1>
+  <button id="reroll-pack" class="secondary">Reroll whole pack</button>
+  <button id="approve">Approve pack</button>
+</div>
+<div id="claude-note" class="claude-note" style="display:none">
+  Rerolls need Claude Code on your PATH — install: https://claude.com/claude-code
+</div>
+<div id="prompts-note" class="prompts-note" style="display:none">
+  No saved prompts for this pack — rerolls will write a fresh prompt from the sound's label instead of refining the original.
+</div>
+<div id="pack-caption" class="caption-box">
+  <input type="text" id="pack-caption-text" placeholder="why? e.g. all a bit too busy, want softer">
+  <button id="pack-caption-go">Reroll all</button>
+</div>
+<div id="sounds"></div>
+<div id="status"></div>
+<script>
+/* Behavior contract:
+   - load(): fetch /api/pack, render one .card per sound per category:
+     [▶ play] [label] [file] [Reroll this sound] and a hidden caption-box
+     with placeholder "why? e.g. too harsh, want something softer" + Go.
+   - play buttons: new Audio('/sounds/' + basename(file)); basename strips 'sounds/' prefix.
+   - Reroll (sound): POST /api/reroll {scope:'sound', category, index, caption}.
+   - Reroll whole pack: toggles #pack-caption; Go POSTs {scope:'pack', caption}.
+   - SSE /api/events: on 'started' disable all reroll/approve buttons, show
+     #status "Rerolling — your Claude Code is working…"; on 'done' re-load()
+     and auto-play the rerolled sound (cache-bust with ?t=Date.now()); on
+     'failed' show #status with the detail text, re-enable buttons.
+   - Approve: confirm() then POST /api/approve {install:true}; on response
+     replace body with a success screen showing the approved path and
+     "Installed — switch with: peon packs use <name>".
+   - 409 busy responses: show #status "one reroll at a time".
+   - If /api/pack reports claude_available:false, disable every reroll button
+     and show an inline note: "Rerolls need Claude Code on your PATH —
+     install: https://claude.com/claude-code". Listening + Approve still work.
+   - Auth (B1): every /api/* fetch sends the token from this page's own URL
+     (?t=<token>) as the X-Eval-Token header; the EventSource URL appends
+     ?t=<token> as a query param since EventSource cannot set headers. */
+
+(function () {
+  "use strict";
+
+  var packData = null;       // last /api/pack response
+  var pendingReroll = null;  // {category, index} for an in-flight scope:'sound' reroll, else null
+  var eventSource = null;    // live SSE connection, closed on approve success
+  var evalToken = new URLSearchParams(location.search).get("t") || "";
+
+  var packnameEl = document.getElementById("packname");
+  var rerollPackBtn = document.getElementById("reroll-pack");
+  var approveBtn = document.getElementById("approve");
+  var claudeNoteEl = document.getElementById("claude-note");
+  var promptsNoteEl = document.getElementById("prompts-note");
+  var packCaptionBox = document.getElementById("pack-caption");
+  var packCaptionText = document.getElementById("pack-caption-text");
+  var packCaptionGo = document.getElementById("pack-caption-go");
+  var soundsEl = document.getElementById("sounds");
+  var statusEl = document.getElementById("status");
+
+  // Every fetch to /api/* must carry the token — the server 403s otherwise.
+  function apiHeaders(extra) {
+    var headers = { "X-Eval-Token": evalToken };
+    if (extra) for (var k in extra) headers[k] = extra[k];
+    return headers;
+  }
+
+  // Appends the token as a query param to a same-origin API path — used for
+  // the EventSource URL, which cannot set custom headers.
+  function withToken(path) {
+    return path + (path.indexOf("?") === -1 ? "?" : "&") + "t=" + encodeURIComponent(evalToken);
+  }
+
+  function basename(file) {
+    return file.indexOf("sounds/") === 0 ? file.slice("sounds/".length) : file;
+  }
+
+  function statusShow(text) {
+    statusEl.textContent = text;
+    statusEl.style.display = "block";
+  }
+
+  function statusHide() {
+    statusEl.style.display = "none";
+    statusEl.textContent = "";
+  }
+
+  // Disables/enables every reroll + approve control. Approve stays covered here too:
+  // it must not run while a reroll job is in flight (server enforces the same via BUSY_LOCK).
+  function setBusy(busy) {
+    var controls = document.querySelectorAll(
+      "#reroll-pack, #approve, #pack-caption-go, .reroll-sound-btn, .caption-go-btn"
+    );
+    for (var i = 0; i < controls.length; i++) controls[i].disabled = busy;
+  }
+
+  function applyClaudeAvailability(available) {
+    claudeNoteEl.style.display = available ? "none" : "block";
+    if (!available) {
+      rerollPackBtn.disabled = true;
+      var rerollButtons = document.querySelectorAll(".reroll-sound-btn");
+      for (var i = 0; i < rerollButtons.length; i++) rerollButtons[i].disabled = true;
+    }
+  }
+
+  // POSTs a reroll job. Resolves to true if the server accepted it (202), false on
+  // any 409/4xx/network failure (status text already shown to the user either way).
+  function postReroll(payload) {
+    return fetch("/api/reroll", {
+      method: "POST",
+      headers: apiHeaders({ "content-type": "application/json" }),
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (res.status === 409) {
+        statusShow("one reroll at a time");
+        return false;
+      }
+      if (!res.ok) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          statusShow("reroll failed: " + (body.error || res.status));
+          return false;
+        });
+      }
+      return true;
+    }).catch(function () {
+      statusShow("reroll request failed");
+      return false;
+    });
+  }
+
+  // doReroll(caption) must return a Promise<boolean> (true = accepted). The Go button
+  // disables synchronously at click time and only re-enables on a non-accepted result;
+  // on accept the input is cleared and the box closes.
+  function buildCaptionRow(placeholder, doReroll, goLabel, goClass) {
+    var box = document.createElement("div");
+    box.className = "caption-box";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = placeholder;
+    var go = document.createElement("button");
+    go.className = goClass;
+    go.textContent = goLabel;
+    go.addEventListener("click", function () {
+      go.disabled = true;
+      doReroll(input.value).then(function (accepted) {
+        if (accepted) {
+          input.value = "";
+          box.classList.remove("open");
+        } else {
+          go.disabled = false;
+        }
+      });
+    });
+    box.appendChild(input);
+    box.appendChild(go);
+    return box;
+  }
+
+  function renderCard(category, index, sound) {
+    var card = document.createElement("div");
+    card.className = "card";
+
+    var playBtn = document.createElement("button");
+    playBtn.className = "secondary";
+    playBtn.textContent = "▶";
+    playBtn.addEventListener("click", function () {
+      new Audio("/sounds/" + basename(sound.file)).play().catch(function () {});
+    });
+
+    var body = document.createElement("div");
+    body.className = "card-body";
+    var labelEl = document.createElement("div");
+    labelEl.className = "card-label";
+    labelEl.textContent = sound.label || "";
+    var fileEl = document.createElement("div");
+    fileEl.className = "card-file";
+    fileEl.textContent = sound.file;
+    body.appendChild(labelEl);
+    body.appendChild(fileEl);
+
+    var rerollBtn = document.createElement("button");
+    rerollBtn.className = "secondary reroll-sound-btn";
+    rerollBtn.textContent = "Reroll this sound";
+
+    var captionBox = buildCaptionRow(
+      "why? e.g. too harsh, want something softer",
+      function (caption) {
+        return postReroll({ scope: "sound", category: category, index: index, caption: caption })
+          .then(function (accepted) {
+            if (accepted) pendingReroll = { category: category, index: index };
+            return accepted;
+          });
+      },
+      "Go",
+      "caption-go-btn"
+    );
+
+    rerollBtn.addEventListener("click", function () {
+      captionBox.classList.toggle("open");
+    });
+
+    card.appendChild(playBtn);
+    card.appendChild(body);
+    card.appendChild(rerollBtn);
+    card.appendChild(captionBox);
+
+    var wrap = document.createElement("div");
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  function render() {
+    packnameEl.textContent = packData.display_name || packData.name || "";
+    soundsEl.textContent = "";
+    var categories = packData.categories || {};
+    Object.keys(categories).forEach(function (cat) {
+      var catEl = document.createElement("div");
+      catEl.className = "cat";
+      catEl.textContent = cat;
+      soundsEl.appendChild(catEl);
+      var sounds = categories[cat] || [];
+      sounds.forEach(function (sound, index) {
+        soundsEl.appendChild(renderCard(cat, index, sound));
+      });
+    });
+    applyClaudeAvailability(!!packData.claude_available);
+    promptsNoteEl.style.display = packData.prompts_present === false ? "block" : "none";
+    if (packData.busy) {
+      setBusy(true);
+      statusShow("Rerolling — your Claude Code is working…");
+    }
+  }
+
+  function load() {
+    return fetch("/api/pack", { headers: apiHeaders() }).then(function (res) { return res.json(); }).then(function (data) {
+      packData = data;
+      render();
+    });
+  }
+
+  function showSuccessScreen(approvedPath, installed) {
+    document.body.textContent = "";
+    var wrap = document.createElement("div");
+    wrap.className = "success";
+
+    var h1 = document.createElement("h1");
+    h1.textContent = "Pack approved";
+    wrap.appendChild(h1);
+
+    var pathEl = document.createElement("p");
+    pathEl.className = "path";
+    pathEl.textContent = "Approved: " + approvedPath;
+    wrap.appendChild(pathEl);
+
+    if (installed) {
+      var name = (packData && packData.name) || approvedPath.split("/").pop();
+      var installEl = document.createElement("p");
+      var prefix = document.createTextNode("Installed — switch with: ");
+      var code = document.createElement("code");
+      code.textContent = "peon packs use " + name;
+      installEl.appendChild(prefix);
+      installEl.appendChild(code);
+      wrap.appendChild(installEl);
+    }
+
+    document.body.appendChild(wrap);
+  }
+
+  function approve() {
+    if (!confirm("Approve this pack?")) return;
+    fetch("/api/approve", {
+      method: "POST",
+      headers: apiHeaders({ "content-type": "application/json" }),
+      body: JSON.stringify({ install: true })
+    }).then(function (res) {
+      if (res.status === 409) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          statusShow(body.error === "busy" ? "one reroll at a time" : "approve failed: " + (body.error || "conflict"));
+        });
+      }
+      if (!res.ok) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          statusShow("approve failed: " + (body.error || res.status));
+        });
+      }
+      return res.json().then(function (body) {
+        // The eval session is over server-side too — stop listening before tearing the page down.
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        showSuccessScreen(body.approved, body.installed);
+      });
+    }).catch(function () {
+      statusShow("approve request failed");
+    });
+  }
+
+  function connectEvents() {
+    eventSource = new EventSource(withToken("/api/events"));
+    eventSource.onmessage = function (ev) {
+      var data;
+      try { data = JSON.parse(ev.data); } catch (e) { return; }
+      if (data.type === "started") {
+        setBusy(true);
+        statusShow("Rerolling — your Claude Code is working…");
+      } else if (data.type === "done") {
+        var pending = pendingReroll;
+        pendingReroll = null;
+        load().then(function () {
+          if (pending) {
+            var sounds = (packData.categories || {})[pending.category] || [];
+            var sound = sounds[pending.index];
+            if (sound) {
+              new Audio("/sounds/" + basename(sound.file) + "?t=" + Date.now()).play().catch(function () {});
+            }
+          }
+          setBusy(false);
+          applyClaudeAvailability(!!packData.claude_available);
+          statusHide();
+        });
+      } else if (data.type === "failed") {
+        statusShow("Reroll failed: " + (data.detail || "unknown error"));
+        setBusy(false);
+        applyClaudeAvailability(!!(packData && packData.claude_available));
+      }
+    };
+    // The connection can drop (server restart, network blip) between events. A done/failed
+    // fired in that gap would otherwise leave the UI stuck showing "Rerolling…" forever, so
+    // resync busy state from the source of truth once per drop.
+    eventSource.onerror = function () {
+      fetch("/api/pack", { headers: apiHeaders() }).then(function (res) { return res.json(); }).then(function (data) {
+        packData = data;
+        render();
+        if (!data.busy) {
+          setBusy(false);
+          applyClaudeAvailability(!!data.claude_available);
+          statusHide();
+        }
+      }).catch(function () {});
+    };
+  }
+
+  rerollPackBtn.addEventListener("click", function () {
+    packCaptionBox.classList.toggle("open");
+  });
+
+  packCaptionGo.addEventListener("click", function () {
+    packCaptionGo.disabled = true;
+    postReroll({ scope: "pack", caption: packCaptionText.value }).then(function (accepted) {
+      if (accepted) {
+        pendingReroll = null;
+        packCaptionText.value = "";
+        packCaptionBox.classList.remove("open");
+      } else {
+        packCaptionGo.disabled = false;
+      }
+    });
+  });
+
+  approveBtn.addEventListener("click", approve);
+
+  load();
+  connectEvents();
+})();
+</script>
+</body></html>

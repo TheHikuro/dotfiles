@@ -114,12 +114,35 @@ _peon_completions() {
           COMPREPLY=( $(compgen -W "$weekdays" -- "$cur") )
         fi
         return 0 ;;
+      create)
+        if [ "$cword" -ge 2 ]; then
+          if [ "$prev" = "--flavor" ]; then
+            COMPREPLY=( $(compgen -W "sfx voice" -- "$cur") )
+          else
+            COMPREPLY=( $(compgen -W "--name --flavor --vibe" -- "$cur") )
+          fi
+        fi
+        return 0 ;;
+      eval)
+        if [ "$cword" -eq 2 ]; then
+          local names=""
+          if [ -d "$HOME/.peon-ping/drafts" ]; then
+            names="$names $(find "$HOME/.peon-ping/drafts" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort)"
+          fi
+          packs_dir="${CLAUDE_PEON_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/peon-ping}/packs"
+          [ ! -d "$packs_dir" ] && [ -d "$HOME/.openpeon/packs" ] && packs_dir="$HOME/.openpeon/packs"
+          if [ -d "$packs_dir" ]; then
+            names="$names $(find "$packs_dir" -maxdepth 2 \( -name manifest.json -o -name openpeon.json \) -exec dirname {} \; 2>/dev/null | xargs -I{} basename {} | sort)"
+          fi
+          COMPREPLY=( $(compgen -W "$names" -- "$cur") )
+        fi
+        return 0 ;;
     esac
     return 0
   fi
 
   # Top-level commands
-  COMPREPLY=( $(compgen -W "pause resume mute unmute toggle status volume rotation packs sounds notifications mobile relay debug logs trainer update help" -- "$cur") )
+  COMPREPLY=( $(compgen -W "pause resume mute unmute toggle status volume rotation packs sounds notifications mobile relay debug logs trainer create eval update help" -- "$cur") )
   return 0
 }
 

@@ -2435,6 +2435,15 @@ if pack_arg not in names:
     print(f'Error: pack \"{pack_arg}\" not found.', file=sys.stderr)
     print(f'Available packs: {\", \".join(names)}', file=sys.stderr)
     sys.exit(1)
+manifest_path = os.path.join(packs_dir, pack_arg, 'openpeon.json')
+if os.path.exists(manifest_path):
+    try:
+        m = json.load(open(manifest_path))
+    except Exception:
+        m = {}
+    if m.get('x_openpeon_draft'):
+        print(f'Error: pack \"{pack_arg}\" is an unapproved draft — run: peon eval {pack_arg}', file=sys.stderr)
+        sys.exit(1)
 try:
     cfg = json.load(open(config_path))
 except Exception:
@@ -3899,6 +3908,211 @@ for i, s in enumerate(sounds):
       fi
     done
     exit 0 ;;
+  create)
+    # Parse --name/--flavor/--vibe flags (mirrors the `packs use` flag-parsing
+    # loop: iterate the args, case-match each one, fall through on the rest).
+    CREATE_NAME=""
+    CREATE_FLAVOR=""
+    CREATE_VIBE=""
+    shift
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --name) [ $# -ge 2 ] || { echo "Error: --name needs a value" >&2; exit 1; }; CREATE_NAME="$2"; shift 2 ;;
+        --flavor) [ $# -ge 2 ] || { echo "Error: --flavor needs a value" >&2; exit 1; }; CREATE_FLAVOR="$2"; shift 2 ;;
+        --vibe) [ $# -ge 2 ] || { echo "Error: --vibe needs a value" >&2; exit 1; }; CREATE_VIBE="$2"; shift 2 ;;
+        *)
+          echo "Usage: peon create [--name <name>] [--flavor sfx|voice] [--vibe \"<text>\"]" >&2
+          exit 1 ;;
+      esac
+    done
+
+    # Interactive prompts for whatever flags were not supplied.
+    if [ -z "$CREATE_NAME" ]; then
+      read -r -p "Pack name (lowercase letters/digits/-/_, e.g. calm-focus): " CREATE_NAME
+    fi
+    if ! [[ "$CREATE_NAME" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+      echo "Error: name must match ^[a-z0-9][a-z0-9_-]*\$ (lowercase letters, digits, - and _; can't start with - or _)." >&2
+      exit 1
+    fi
+
+    if [ -z "$CREATE_FLAVOR" ]; then
+      read -r -p "Flavor (sfx = wordless tones, voice = spoken lines): " CREATE_FLAVOR
+    fi
+    if [ "$CREATE_FLAVOR" != "sfx" ] && [ "$CREATE_FLAVOR" != "voice" ]; then
+      echo "Error: flavor must be \"sfx\" or \"voice\"." >&2
+      exit 1
+    fi
+
+    if [ -z "$CREATE_VIBE" ]; then
+      read -r -p "One-line vibe description: " CREATE_VIBE
+    fi
+    if [ -z "$CREATE_VIBE" ]; then
+      echo "Error: a vibe description is required." >&2
+      exit 1
+    fi
+
+    CREATE_DRAFT_ROOT="$HOME/.peon-ping/drafts"
+    if [ -d "$CREATE_DRAFT_ROOT/$CREATE_NAME" ]; then
+      echo "Error: a draft named \"$CREATE_NAME\" already exists at $CREATE_DRAFT_ROOT/$CREATE_NAME" >&2
+      echo "Run: peon eval $CREATE_NAME" >&2
+      exit 1
+    fi
+
+    CREATE_CLAUDE_BIN="${PEON_CLAUDE_BIN:-claude}"
+    CREATE_PROMPT="Use the peon-ping-create-pack skill to draft a pack: name=$CREATE_NAME flavor=$CREATE_FLAVOR vibe=$CREATE_VIBE draft_root=$CREATE_DRAFT_ROOT. Follow the skill exactly."
+    echo "peon-ping: drafting pack \"$CREATE_NAME\" ($CREATE_FLAVOR) ..."
+    # B3(a): grant the spawned Claude Code write access to the drafts root and
+    # the peon-ping install — under --permission-mode default (most users) an
+    # agent with no --add-dir grant here cannot write the draft it's supposed
+    # to author, or run pack-render.py, yet used to still exit 0.
+    CREATE_ADD_DIRS=()
+    [ -n "$CREATE_DRAFT_ROOT" ] && mkdir -p "$CREATE_DRAFT_ROOT" 2>/dev/null
+    [ -n "$CREATE_DRAFT_ROOT" ] && [ -d "$CREATE_DRAFT_ROOT" ] && CREATE_ADD_DIRS+=(--add-dir "$CREATE_DRAFT_ROOT")
+    [ -n "$PEON_DIR" ] && [ -d "$PEON_DIR" ] && CREATE_ADD_DIRS+=(--add-dir "$PEON_DIR")
+    "$CREATE_CLAUDE_BIN" "${CREATE_ADD_DIRS[@]+"${CREATE_ADD_DIRS[@]}"}" -p "$CREATE_PROMPT"
+    CREATE_RC=$?
+    if [ $CREATE_RC -ne 0 ]; then
+      echo "Error: pack drafting failed (exit $CREATE_RC)." >&2
+      exit $CREATE_RC
+    fi
+    if [ ! -f "$CREATE_DRAFT_ROOT/$CREATE_NAME/openpeon.json" ]; then
+      echo "Error: drafting finished but no draft was written to $CREATE_DRAFT_ROOT/$CREATE_NAME" >&2
+      exit 1
+    fi
+
+    # Hand off to the eval code path so creation NEVER ends with an installed
+    # pack — the draft always has to clear the eval gate.
+    exec "$0" eval "$CREATE_NAME" ;;
+  eval)
+    EVAL_ARG="${2:-}"
+    if [ -z "$EVAL_ARG" ]; then
+      echo "Usage: peon eval <name-or-path>" >&2
+      exit 1
+    fi
+
+    # Shared by cases (1) and (3) below: copy a foreign pack/draft dir into
+    # ~/.peon-ping/drafts/<basename>, stamp the copy as a draft, and (R10)
+    # synthesize a stub prompts.json when the source has none — otherwise
+    # every reroll on a re-drafted installed pack fails mid-job because the
+    # peon-ping-remix skill has no prompts.json to read.
+    _peon_eval_copy_stamp_draft() {
+      EVAL_SRC="$1" EVAL_DEST="$2" python3 -c "
+import json, os, shutil, sys
+
+src = os.environ['EVAL_SRC']
+dest = os.environ['EVAL_DEST']
+if os.path.exists(dest):
+    print(f'Error: a draft named \"{os.path.basename(dest)}\" already exists at {dest}', file=sys.stderr)
+    sys.exit(1)
+os.makedirs(os.path.dirname(dest), exist_ok=True)
+shutil.copytree(src, dest)
+manifest_path = os.path.join(dest, 'openpeon.json')
+m = json.load(open(manifest_path))
+m['x_openpeon_draft'] = True
+json.dump(m, open(manifest_path, 'w'), indent=2)
+
+prompts_path = os.path.join(dest, 'prompts.json')
+if not os.path.exists(prompts_path):
+    stub = {}
+    for cat in m.get('categories', {}).values():
+        for sound in cat.get('sounds', []):
+            f = sound.get('file')
+            if not f:
+                continue
+            label = sound.get('label') or f
+            voice_id = m.get('x_voice_id')
+            if voice_id:
+                stub[f] = {'type': 'tts', 'text': label, 'voice_id': voice_id}
+            else:
+                stub[f] = {'type': 'sfx',
+                            'prompt': label + ' — no prompt on file; write a fresh one honoring the caption'}
+    json.dump(stub, open(prompts_path, 'w'), indent=2)
+"
+    }
+
+    DRAFT_DIR=""
+    DRAFTS_ROOT="$HOME/.peon-ping/drafts"
+    if [ -d "$EVAL_ARG" ] && [ -f "$EVAL_ARG/openpeon.json" ]; then
+      EVAL_ARG_REAL="$(cd "$EVAL_ARG" && pwd)"
+      mkdir -p "$DRAFTS_ROOT"
+      DRAFTS_ROOT_REAL="$(cd "$DRAFTS_ROOT" && pwd)"
+      case "$EVAL_ARG_REAL" in
+        "$DRAFTS_ROOT_REAL"|"$DRAFTS_ROOT_REAL"/*)
+          # (1a) Already inside the drafts root — eval it in place.
+          DRAFT_DIR="$EVAL_ARG_REAL" ;;
+        *)
+          # (1b) B5: a foreign directory with an openpeon.json — e.g.
+          # `peon eval ~/.claude/hooks/peon-ping/packs/glados` pointed straight
+          # at an INSTALLED pack. Never eval a foreign directory in place (an
+          # approve would then shutil.move it OUT of wherever it lives). Copy
+          # + stamp into the drafts root instead, exactly like case (3).
+          EVAL_FOREIGN_NAME="$(basename "$EVAL_ARG_REAL")"
+          DRAFT_DIR="$DRAFTS_ROOT/$EVAL_FOREIGN_NAME"
+          _peon_eval_copy_stamp_draft "$EVAL_ARG_REAL" "$DRAFT_DIR" || exit 1
+          ;;
+      esac
+    elif [ -f "$DRAFTS_ROOT/$EVAL_ARG/openpeon.json" ]; then
+      # (2) An already-drafted pack, resolved by name.
+      DRAFT_DIR="$DRAFTS_ROOT/$EVAL_ARG"
+    elif [ -f "$PEON_DIR/packs/$EVAL_ARG/openpeon.json" ]; then
+      # (3) An installed pack — re-draft: copy it into ~/.peon-ping/drafts and
+      # stamp the COPY as a draft. The installed original is left untouched.
+      DRAFT_DIR="$DRAFTS_ROOT/$EVAL_ARG"
+      _peon_eval_copy_stamp_draft "$PEON_DIR/packs/$EVAL_ARG" "$DRAFT_DIR" || exit 1
+    else
+      echo "Error: pack or draft \"$EVAL_ARG\" not found." >&2
+      exit 1
+    fi
+
+    # Live-lockfile reuse: if an eval server is already running for this draft
+    # (PID still alive), print its URL instead of starting a second one.
+    EVAL_LOCK="$DRAFT_DIR/.eval-server.json"
+    if [ -f "$EVAL_LOCK" ]; then
+      _eval_lock_out="$(EVAL_LOCK_PATH="$EVAL_LOCK" python3 -c "
+import json, os, re
+try:
+    lock = json.load(open(os.environ['EVAL_LOCK_PATH']))
+except Exception:
+    lock = {}
+token = str(lock.get('token', ''))
+if not re.fullmatch(r'[A-Za-z0-9_-]*', token):
+    token = ''  # safe_eval_python only accepts shell-safe VAR=value lines
+print('EVAL_LOCK_PID=' + str(lock.get('pid', '')))
+print('EVAL_LOCK_PORT=' + str(lock.get('port', '')))
+print('EVAL_LOCK_TOKEN=' + token)
+")"
+      safe_eval_python "$_eval_lock_out" || true
+      if [ -n "${EVAL_LOCK_PID:-}" ] && [ -n "${EVAL_LOCK_PORT:-}" ] && kill -0 "$EVAL_LOCK_PID" 2>/dev/null; then
+        echo "peon-ping: eval server already running for this draft"
+        # B1: the URL must carry the session's token or the UI 403s against its own server.
+        echo "http://127.0.0.1:${EVAL_LOCK_PORT}/?t=${EVAL_LOCK_TOKEN:-}"
+        exit 0
+      fi
+    fi
+
+    EVAL_SERVER="$(find_bundled_script "eval-server.py")" || {
+      echo "Error: eval-server.py not found. Run 'peon update' or reinstall peon-ping to fix." >&2
+      exit 1
+    }
+
+    # Export PEON_DIR so the eval server (and the `claude -p` reroll child it
+    # spawns headlessly) can resolve scripts/pack-render.py via $PEON_DIR/scripts
+    # (see skills/peon-ping-remix/SKILL.md step 5) instead of guessing.
+    export PEON_DIR
+
+    EVAL_CMD=(python3 "$EVAL_SERVER" --draft "$DRAFT_DIR")
+    [ "${PEON_EVAL_NO_OPEN:-0}" = "1" ] && EVAL_CMD+=(--no-open)
+    # R12: PEON_CLAUDE_BIN was honored by `peon create` but silently ignored
+    # by `peon eval` — a user who set it to point at a non-default claude
+    # binary got the reroll worker spawning the wrong one.
+    [ -n "${PEON_CLAUDE_BIN:-}" ] && EVAL_CMD+=(--claude-bin "$PEON_CLAUDE_BIN")
+
+    if [ "${PEON_EVAL_DRY_RUN:-0}" = "1" ]; then
+      printf '%s\n' "${EVAL_CMD[*]}"
+      exit 0
+    fi
+
+    exec "${EVAL_CMD[@]}" ;;
   update)
     echo "Updating peon-ping..."
     # Migrate config keys (active_pack → default_pack, agentskill → session_override)
@@ -4154,6 +4368,10 @@ Commands:
   preview --list       List all categories and sound counts in the active pack
                        Categories: session.start, task.acknowledge, task.complete,
                        task.error, input.required, resource.limit, user.spam
+  create               Draft a new sound pack from a vibe (prompts for name/flavor/vibe;
+                       renders via your Claude Code, then hands off to eval)
+  create --name <n> --flavor sfx|voice --vibe "<text>"  Non-interactive create
+  eval <name-or-path>  Listen to and approve a draft pack (rerolls via your Claude Code)
   debug on             Enable debug logging
   debug off            Disable debug logging
   debug status         Show debug state, log directory, file count, total size
