@@ -1,28 +1,69 @@
--- Latency-oriented LSP tuning. See also `plugins/tsgo.lua` for tsgo's
+-- Latency-oriented LSP tuning. See also `plugins/tsc.lua` for tsc's
 -- code-action keymaps and `config/options.lua` for the server selection.
 return {
   "neovim/nvim-lspconfig",
   opts = {
     -- Every `textDocument/didChange` otherwise triggers a `textDocument/inlayHint`
     -- refresh for the visible range, on top of diagnostics. The per-server
-    -- `inlayHints` settings from the tsgo extra stay in place but no longer
+    -- `inlayHints` settings on `tsc` below stay in place but no longer
     -- render; `<leader>uh` toggles them back on per buffer.
     inlay_hints = { enabled = false },
 
     servers = {
-      tsgo = {
-        -- Collapse tsgo to one client per git repository. LazyVim's default
-        -- markers are { "tsconfig.json", "package.json", "jsconfig.json" }, so
-        -- a monorepo otherwise spawns one tsgo process per package.
+      -- LazyVim's `lang.typescript` extra picks a TS server from
+      -- `vim.g.lazyvim_ts_lsp`, whose only options are "vtsls" and the
+      -- deprecated "tsgo" — so let it fall back to vtsls, switch that off, and
+      -- enable `tsc` below instead. LazyVim disables tsserver/ts_ls/tsgo by
+      -- itself as soon as they are not the chosen one.
+      vtsls = { enabled = false },
+
+      -- `tsc` is the TypeScript 7 compiler's built-in language server, i.e. the
+      -- released form of the `tsgo` native preview. Mason deprecated the `tsgo`
+      -- package (@typescript/native-preview) on 2026-08-13 in favour of `tsc`
+      -- (npm typescript@7), and lspconfig's `tsgo` config is now an alias of
+      -- `tsc` that is scheduled for removal in nvim-lspconfig 3.0.0.
+      tsc = {
+        -- lspconfig's defaults omit these two; LazyVim's extras list them so
+        -- that related extras (vue, …) can extend the list.
+        filetypes = {
+          "javascript",
+          "javascriptreact",
+          "javascript.jsx",
+          "typescript",
+          "typescriptreact",
+          "typescript.tsx",
+        },
+        -- No root override here, unlike the old `tsgo` entry that pinned
+        -- `root_markers = { ".git" }` to avoid one client per monorepo package:
+        -- lspconfig's `tsc` already resolves the root from the nearest
+        -- package-manager lockfile (falling back to `.git`), and a single `tsc`
+        -- process serves every tsconfig under it.
         --
-        -- Must be `root_markers`, NOT a `root_dir` function: a `root_dir` that
-        -- calls `on_dir()` synchronously resolves the root and spawns the client
-        -- before `mason-lspconfig.setup()` has rewritten `cmd` to the mason
-        -- binary, so the client tries to exec lspconfig's bare default (`tsc`,
-        -- since lspconfig deprecated the `tsgo` name in favour of `tsc`) and
-        -- dies with "not installed, missing from PATH, or not executable".
-        -- Native root-marker detection is deferred and doesn't race.
-        root_markers = { ".git" },
+        -- That `root_dir` function is also what probes for a `--lsp`-capable
+        -- binary (TypeScript >= 7, so a project-local TS 5 in `node_modules/.bin`
+        -- is skipped in favour of mason's `tsc` on `$PATH`) and caches it for
+        -- `cmd`; replacing it would leave `cmd` exec'ing a bare `tsc`. And
+        -- `root_markers` is no way around that either — see `:h lsp-root_markers`,
+        -- it is ignored whenever `root_dir` is set.
+        settings = {
+          -- The server reads the `js/ts`, `typescript`, `javascript` and
+          -- `editor` configuration sections. lspconfig's defaults fill in
+          -- `js/ts`; this is LazyVim's tighter inlay-hint set, kept from the
+          -- `lang.typescript.tsgo` extra we no longer import.
+          typescript = {
+            inlayHints = {
+              enumMemberValues = { enabled = true },
+              functionLikeReturnTypes = { enabled = false },
+              parameterNames = {
+                enabled = "literals",
+                suppressWhenArgumentMatchesName = true,
+              },
+              parameterTypes = { enabled = true },
+              propertyDeclarationTypes = { enabled = true },
+              variableTypes = { enabled = false },
+            },
+          },
+        },
       },
 
       oxlint = {
@@ -32,8 +73,8 @@ return {
           -- A project whose oxlint config enables type-aware linting (ours sets
           -- both `typeAware` and `typeCheck`) makes the oxlint LSP spawn
           -- tsgolint, which builds its own type-checked TS program on top of
-          -- tsgo's ~1.5GB. With `typeCheck` it is largely re-deriving type
-          -- errors tsgo already reports.
+          -- tsc's ~1.5GB. With `typeCheck` it is largely re-deriving type
+          -- errors tsc already reports.
           --
           -- MEASURED on vertuo-front (2597 TS files), peak RSS of the tsgolint
           -- processes belonging to one nvim, sampled while opening a buffer:

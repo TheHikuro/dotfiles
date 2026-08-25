@@ -1,7 +1,9 @@
--- TypeScript code-action keymaps for `tsgo` (`vim.g.lazyvim_ts_lsp = "tsgo"`).
+-- TypeScript code-action keymaps for `tsc` (see `plugins/lsp.lua` for the
+-- server itself).
 --
--- tsgo (@typescript/native-preview) does NOT implement the same code-action
--- kinds as vtsls/tsserver. As of 7.0.0-dev.20260707 it advertises only:
+-- The TypeScript 7 language server (`tsc --lsp`, formerly the `tsgo` preview)
+-- does NOT implement the same code-action kinds as vtsls/tsserver. As of
+-- 7.0.2 it advertises only:
 --
 --   quickfix, source.organizeImports, source.removeUnusedImports,
 --   source.sortImports, source.fixAll
@@ -50,19 +52,19 @@ local function pick_import_item(items, name)
   return candidates[1], #candidates
 end
 
---- tsgo replacement for `source.addMissingImports.ts`.
+--- tsc replacement for `source.addMissingImports.ts`.
 ---
 --- Resolves every in-scope-missing identifier through the completion API and
---- applies the resulting import edits, one diagnostic at a time so tsgo always
+--- applies the resulting import edits, one diagnostic at a time so tsc always
 --- computes against the up-to-date document.
 local function add_missing_imports()
   local buf = vim.api.nvim_get_current_buf()
-  local client = vim.lsp.get_clients({ bufnr = buf, name = "tsgo" })[1]
+  local client = vim.lsp.get_clients({ bufnr = buf, name = "tsc" })[1]
   if not client then
-    return vim.notify("tsgo is not attached to this buffer", vim.log.levels.WARN)
+    return vim.notify("tsc is not attached to this buffer", vim.log.levels.WARN)
   end
 
-  local ns = vim.api.nvim_create_namespace("tsgo_add_missing_imports")
+  local ns = vim.api.nvim_create_namespace("tsc_add_missing_imports")
   vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
 
   -- Anchor each missing identifier to an extmark: applying an import shifts
@@ -107,7 +109,7 @@ local function add_missing_imports()
   end
 
   local step
-  -- Let the pending didChange flush before asking tsgo for the next position.
+  -- Let the pending didChange flush before asking tsc for the next position.
   local function next_step()
     vim.defer_fn(step, 200)
   end
@@ -164,7 +166,7 @@ return {
     "neovim/nvim-lspconfig",
     opts = {
       servers = {
-        tsgo = {
+        tsc = {
           keys = {
             {
               "<leader>cM",
@@ -172,7 +174,7 @@ return {
               desc = "Add missing imports",
             },
             {
-              -- tsgo's kind is `source.removeUnusedImports`, not vtsls'
+              -- tsc's kind is `source.removeUnusedImports`, not vtsls'
               -- `source.removeUnused.ts`.
               "<leader>cu",
               LazyVim.lsp.action["source.removeUnusedImports"],
