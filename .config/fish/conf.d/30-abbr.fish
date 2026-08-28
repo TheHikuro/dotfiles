@@ -20,6 +20,9 @@ alias c 'clear'
 alias v 'nvim'
 alias b 'bat'
 
+# ─── Outils ──────────────────────────────────────────────────────────────────
+alias tb 'terminal-browser'
+
 # ─── Git ─────────────────────────────────────────────────────────────────────
 # Le `--` sépare les options d'abbr du nom + de l'expansion : indispensable
 # dès que l'expansion contient des flags (--force, -a, ...).
