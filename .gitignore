@@ -23,6 +23,7 @@
 .claude/hooks/peon-ping/.state.json
 .claude/hooks/peon-ping/.sound.pid
 .claude/hooks/peon-ping/.last_update_check
+.claude/hooks/peon-ping/.update_available
 .claude/hooks/peon-ping/*.log
 
 # herdr : logs runtime écrits à côté de config.toml
