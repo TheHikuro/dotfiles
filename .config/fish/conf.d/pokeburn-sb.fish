@@ -1,0 +1,1 @@
+/Users/loancleris/Desktop/projet-perso/pokeburn/completions/pokeburn.fish
