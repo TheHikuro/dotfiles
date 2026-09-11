@@ -989,3 +989,4 @@ let mise_path = ($nu.default-config-dir | path join mise.nu)
 if ($mise_path | path exists) {
   source ($nu.default-config-dir | path join mise.nu)
 }
+source "~/.cargo/env.nu"
