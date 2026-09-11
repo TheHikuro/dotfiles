@@ -22,6 +22,7 @@ if test -d $HOME/Library/Android/sdk
     set -gx ANDROID_HOME $HOME/Library/Android/sdk
     fish_add_path -ga $ANDROID_HOME/emulator
     fish_add_path -ga $ANDROID_HOME/platform-tools
+    fish_add_path -ga $ANDROID_HOME/cmdline-tools/latest/bin
 end
 
 # ─── CARAPACE_BRIDGES (completions multi-shell) ──────────────────────────────
