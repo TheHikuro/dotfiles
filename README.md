@@ -280,7 +280,8 @@ Unlike NuShell, fish reads `~/.config/fish` directly — no entry-point stubs in
 │   ├── 00-env.fish        # ← env.nu    (fish_add_path, set -gx, Android SDK)
 │   ├── 10-secrets.fish    # ← secrets.nu (same Keychain entries)
 │   ├── 20-tools.fish      # mise, zoxide, carapace, fzf, starship
-│   └── 30-abbr.fish       # ← the aliases (git ones become abbreviations)
+│   ├── 30-abbr.fish       # ← the aliases (git ones become abbreviations)
+│   └── 40-claude-acc.fish # claude-<account> wrappers (claude-acc is zsh/bash only)
 └── functions/             # lazily autoloaded, one function per file
     ├── cx.fish  gbr.fish  vfind.fish
     └── env-encrypt.fish  env-decrypt.fish  shrink-img.fish

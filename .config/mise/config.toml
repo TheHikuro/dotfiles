@@ -11,6 +11,9 @@ node = "latest"
 go = "latest"
 java = "zulu-17.68.17.0"
 
+# claude-acc : wrappers multi-comptes Claude Code (cf. fish/conf.d/40-claude-acc.fish)
+"npm:claude-code-accounts" = "latest"
+
 [settings]
 auto_install = true
 experimental = true
